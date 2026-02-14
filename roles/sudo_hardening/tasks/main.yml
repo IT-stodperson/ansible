@@ -1,3 +1,25 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# tasks file for sudo_hardening
+# Sudo hardening for Debian servers.
+
+# =============================================================================
+# Sudo Hardening — Main task entry point
+# =============================================================================
+
+- name: Deploy sudo hardening configuration
+  ansible.builtin.import_tasks: configuration.yml
+  tags:
+    - sudo
+    - sudo_configuration
+
+- name: Enforce sudoers file permissions
+  ansible.builtin.import_tasks: permissions.yml
+  tags:
+    - sudo
+    - sudo_permissions
+
+- name: Audit NOPASSWD entries
+  ansible.builtin.import_tasks: audit.yml
+  tags:
+    - sudo
+    - sudo_audit

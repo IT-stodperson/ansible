@@ -26,28 +26,28 @@
 # Reset environment variables to prevent malicious environment exploitation
 Defaults env_reset
 
-# Sudo session timeout: 15 minutes of inactivity before requiring password again
-Defaults timestamp_timeout=15
+# Sudo session timeout: {{ sudo_timestamp_timeout }} minutes of inactivity before requiring password again
+Defaults timestamp_timeout={{ sudo_timestamp_timeout }}
 
-# Maximum time to enter password: 1 minute
-Defaults passwd_timeout=1
+# Maximum time to enter password: {{ sudo_passwd_timeout }} minute(s)
+Defaults passwd_timeout={{ sudo_passwd_timeout }}
 
-# Use global timestamp (one password prompt per session, not per terminal)
-Defaults timestamp_type=global
+# Use {{ sudo_timestamp_type }} timestamp (one password prompt per session, not per terminal)
+Defaults timestamp_type={{ sudo_timestamp_type }}
 
 # ============================================================================
 # Logging
 # ============================================================================
 
 # Log all sudo commands to dedicated log file
-Defaults logfile="/var/log/sudo.log"
+Defaults logfile="{{ sudo_logfile }}"
 
 # Log input and output of all sudo commands for full audit trail
 Defaults log_input
 Defaults log_output
 
 # Directory for storing I/O logs
-Defaults iolog_dir="/var/log/sudo-io"
+Defaults iolog_dir="{{ sudo_iolog_dir }}"
 
 # ============================================================================
 # Security Hardening
@@ -57,28 +57,30 @@ Defaults iolog_dir="/var/log/sudo-io"
 Defaults use_pty
 
 # Restrict PATH to prevent malicious binaries from being executed
-Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Defaults secure_path="{{ sudo_secure_path }}"
 
 # ============================================================================
 # Password Policy
 # ============================================================================
 
 # Maximum number of password attempts before failing
-Defaults passwd_tries=3
+Defaults passwd_tries={{ sudo_passwd_tries }}
 
 # ============================================================================
-# Alerts (Optional)
+# Alerts
 # ============================================================================
 
 # Send email alert on failed sudo password attempts
 Defaults mail_badpass
 
 # Email address to receive sudo security alerts
-Defaults mailto="itstodperson@gymnasium.ax"
+Defaults mailto="{{ sudo_mailto }}"
 
 # ============================================================================
 # Service Accounts
 # ============================================================================
 
-# Ansible automation — requires passwordless sudo for remote management
-ansible ALL=(ALL) NOPASSWD: ALL
+{% for account in sudo_service_accounts %}
+# {{ account.comment }}
+{{ account.name }} {{ account.privileges }}
+{% endfor %}

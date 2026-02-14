@@ -1,0 +1,25 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Audit NOPASSWD entries across all sudoers files.
+
+- name: Audit NOPASSWD entries in sudoers files
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      grep -rn "^[^#]*NOPASSWD" /etc/sudoers /etc/sudoers.d/ 2>/dev/null || true
+    executable: /bin/bash
+  register: nopasswd_audit
+  changed_when: false
+
+- name: Report NOPASSWD entries found
+  ansible.builtin.debug:
+    msg: >-
+      NOPASSWD AUDIT [{{ inventory_hostname }}] —
+      Found {{ nopasswd_audit.stdout_lines | length }} entry/entries:
+      {{ nopasswd_audit.stdout_lines | join(' | ') }}
+  when: nopasswd_audit.stdout | length > 0
+
+- name: Confirm no NOPASSWD entries found
+  ansible.builtin.debug:
+    msg: "NOPASSWD AUDIT [{{ inventory_hostname }}] — No entries found."
+  when: nopasswd_audit.stdout | length == 0

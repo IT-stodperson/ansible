@@ -1,3 +1,54 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# defaults file for sudo_hardening
+# Default variables for the sudo_hardening role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# ---------------------------------------------------------------------------
+# Environment and Timing
+# ---------------------------------------------------------------------------
+
+# Minutes of inactivity before sudo requires password again
+sudo_timestamp_timeout: 15
+
+# Minutes allowed to enter password before prompt times out
+sudo_passwd_timeout: 1
+
+# Timestamp scope: global (one prompt per session, not per terminal)
+sudo_timestamp_type: global
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+
+# Dedicated log file for all sudo commands
+sudo_logfile: /var/log/sudo.log
+
+# Directory for storing I/O session logs
+sudo_iolog_dir: /var/log/sudo-io
+
+# ---------------------------------------------------------------------------
+# Security
+# ---------------------------------------------------------------------------
+
+# Restrict PATH to prevent execution of malicious binaries
+sudo_secure_path: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Maximum number of password attempts before failing
+sudo_passwd_tries: 3
+
+# ---------------------------------------------------------------------------
+# Alerts
+# ---------------------------------------------------------------------------
+
+# Email address to receive sudo security alerts
+sudo_mailto: itstodperson@gymnasium.ax
+
+# ---------------------------------------------------------------------------
+# Service Accounts
+# ---------------------------------------------------------------------------
+
+# Accounts that require passwordless sudo (e.g., automation users)
+sudo_service_accounts:
+  - name: ansible
+    privileges: "ALL=(ALL) NOPASSWD: ALL"
+    comment: Ansible automation — requires passwordless sudo for remote management
