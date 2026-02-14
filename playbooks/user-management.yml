@@ -1,0 +1,20 @@
+---
+# User Management Playbook
+#
+# Creates users, assigns group membership, and deploys SSH authorized keys.
+#
+# Usage:
+#   Full run:
+#     ansible-playbook playbooks/user-management.yml
+#
+#   Limit to a single host:
+#     ansible-playbook playbooks/user-management.yml --limit webftp.its.ax
+#
+#   Dry run:
+#     ansible-playbook playbooks/user-management.yml --check --diff
+
+- name: User Management Playbook
+  hosts: debian_servers
+  become: true
+  roles:
+    - role: user_management

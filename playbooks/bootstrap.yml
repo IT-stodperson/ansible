@@ -1,0 +1,107 @@
+---
+# Bootstrap Playbook — Initial Ansible account setup
+#
+# Connects as root to provision the 'ansible' service account on new hosts.
+# This playbook is designed to run ONCE per host, before any other playbooks.
+# After bootstrap, all subsequent playbooks connect as the 'ansible' user.
+#
+# Prerequisites:
+#   - vault_root_password must be defined in inventory/group_vars/all/vault.yml
+#   - .ssh/ansible_key.pub must exist in the project directory
+#
+# Usage:
+#   Single host:
+#     ansible-playbook playbooks/bootstrap.yml --limit <new-host>
+#
+#   Dry run:
+#     ansible-playbook playbooks/bootstrap.yml --limit <new-host> --check --diff
+
+- name: Bootstrap Playbook — Ansible account setup
+  hosts: debian_servers
+  become: false
+  remote_user: root
+  vars:
+    ansible_password: "{{ vault_root_password }}"
+    ansible_ssh_extra_args: "-o StrictHostKeyChecking=no"
+    bootstrap_user: ansible
+    bootstrap_ssh_pubkey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPz0FBP5rLLlXnqjS3twrDudSj9Vt9+ex3wRltx0FHDu ansible@ansible.its.ax"
+
+  tasks:
+    # ==========================================================================
+    # SUDO
+    # ==========================================================================
+
+    - name: Ensure sudo is installed
+      ansible.builtin.apt:
+        name: sudo
+        state: present
+        update_cache: true
+
+    # ==========================================================================
+    # USER AND GROUP
+    # ==========================================================================
+
+    - name: Ensure '{{ bootstrap_user }}' group exists
+      ansible.builtin.group:
+        name: "{{ bootstrap_user }}"
+        state: present
+
+    - name: Create '{{ bootstrap_user }}' user
+      ansible.builtin.user:
+        name: "{{ bootstrap_user }}"
+        group: "{{ bootstrap_user }}"
+        shell: /bin/bash
+        create_home: true
+        comment: Ansible automation account
+        state: present
+
+    # ==========================================================================
+    # SUDOERS
+    # ==========================================================================
+
+    - name: Grant passwordless sudo to '{{ bootstrap_user }}'
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ bootstrap_user }}"
+        content: |
+          # Ansible automation — requires passwordless sudo for remote management
+          {{ bootstrap_user }} ALL=(ALL) NOPASSWD: ALL
+        owner: root
+        group: root
+        mode: '0440'
+        validate: visudo -cf %s
+
+    # ==========================================================================
+    # SSH AUTHORIZED KEY
+    # ==========================================================================
+
+    - name: Ensure .ssh directory exists for '{{ bootstrap_user }}'
+      ansible.builtin.file:
+        path: "/home/{{ bootstrap_user }}/.ssh"
+        state: directory
+        owner: "{{ bootstrap_user }}"
+        group: "{{ bootstrap_user }}"
+        mode: '0700'
+
+    - name: Deploy authorized_keys for '{{ bootstrap_user }}'
+      ansible.builtin.authorized_key:
+        user: "{{ bootstrap_user }}"
+        key: "{{ bootstrap_ssh_pubkey }}"
+        state: present
+        manage_dir: false
+
+    # ==========================================================================
+    # VERIFICATION
+    # ==========================================================================
+
+    - name: Verify sudo access for '{{ bootstrap_user }}'
+      ansible.builtin.command:
+        cmd: "su - {{ bootstrap_user }} -c 'sudo -n whoami'"
+      register: sudo_check
+      changed_when: false
+
+    - name: Confirm bootstrap result
+      ansible.builtin.debug:
+        msg: >-
+          Bootstrap complete: '{{ bootstrap_user }}' can sudo
+          (got '{{ sudo_check.stdout }}').
+          This host is ready for normal Ansible operations.
