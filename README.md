@@ -26,10 +26,8 @@ This repository is the central source of truth for all Ansible playbooks, roles,
 │   └── host_vars/           # Per-host variable overrides
 ├── playbooks/
 │   ├── security-hardening.yml
-│   ├── sudo-hardening.yml
 │   ├── nftables-hardening.yml
-│   ├── motd-deploy.yml
-│   └── templates/           # Jinja2 templates used by playbooks
+│   └── motd-deploy.yml
 └── roles/
     ├── accounts_hardening   # Password policies, shell hardening, timeouts
     ├── apparmor             # Mandatory access control profiles
