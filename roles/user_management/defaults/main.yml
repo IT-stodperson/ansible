@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the user_management role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# Group that managed users will be added to
+user_management_group: teachers
+
+# List of users to manage
+# Each entry requires:
+#   - name:       login username
+#   - ssh_key:    public SSH key string
+#
+# Optional fields:
+#   - shell:      login shell (default: /bin/bash)
+#   - comment:    GECOS / full name
+user_management_users:
+  - name: tobias
+    ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDSr05hRFY4rs1U3KW31C1hLrth2UzlVwZKc9Ijsh8Mf tobias"
+    comment: Tobias
+    shell: /bin/bash
