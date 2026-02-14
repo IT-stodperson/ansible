@@ -1,0 +1,17 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the motd role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# ---------------------------------------------------------------------------
+# Cache timer settings
+# ---------------------------------------------------------------------------
+motd_cache_timer_boot_delay: "2min"
+motd_cache_timer_interval: "6h"
+
+# ---------------------------------------------------------------------------
+# MOTD script deployment
+# ---------------------------------------------------------------------------
+# Set motd_script to deploy a host-specific MOTD script.
+# Example: motd_script: 10-custom-wazuh
+# Templates are stored in: roles/motd/templates/scripts/<name>.j2

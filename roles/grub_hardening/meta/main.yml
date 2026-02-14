@@ -1,0 +1,26 @@
+#SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  author: Tobias Svenblad
+  description: >-
+    GRUB hardening for Debian servers — password protection, unrestricted
+    boot, kernel boot parameter hardening, and file permission lockdown.
+  company: IT-stödperson
+  issue_tracker_url: https://github.com/IT-stodperson/ansible/issues
+  license: MIT
+  min_ansible_version: 2.20
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - security
+    - grub
+    - hardening
+    - debian
+dependencies: []

@@ -1,0 +1,87 @@
+#SPDX-License-Identifier: MIT-0
+---
+# APT file and directory permission hardening.
+
+# ===========================================================================
+# DIRECTORY PERMISSIONS
+# ===========================================================================
+
+- name: Ensure APT directories have correct ownership and permissions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: '0755'
+    follow: true
+    state: directory
+  loop: "{{ apt_directories }}"
+
+# ===========================================================================
+# FILE PERMISSIONS — GPG KEYRINGS
+# ===========================================================================
+
+- name: Find GPG keyring files
+  ansible.builtin.find:
+    paths:
+      - /usr/share/keyrings
+      - /etc/apt/trusted.gpg.d
+    patterns:
+      - '*.gpg'
+      - '*.asc'
+      - '*.pgp'
+    follow: true
+  register: gpg_files
+
+- name: Ensure GPG keyring files have correct ownership and permissions
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0644'
+    follow: true
+  loop: "{{ gpg_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+# ===========================================================================
+# FILE PERMISSIONS — SOURCES AND AUTH
+# ===========================================================================
+
+- name: Find files in sources.list.d
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d
+    patterns:
+      - '*.list'
+      - '*.sources'
+    follow: true
+  register: sources_files
+
+- name: Ensure sources.list.d files have correct ownership and permissions
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0644'
+    follow: true
+  loop: "{{ sources_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Find files in auth.conf.d
+  ansible.builtin.find:
+    paths: /etc/apt/auth.conf.d
+    patterns:
+      - '*'
+    follow: true
+  register: auth_files
+
+- name: Ensure auth.conf.d files have correct ownership and permissions
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0644'
+    follow: true
+  loop: "{{ auth_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"

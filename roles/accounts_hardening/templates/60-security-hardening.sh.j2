@@ -1,0 +1,97 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Shell security hardening and convenience settings for interactive sessions.
+#   Configures umask, session timeout, history, and safety aliases.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# Only apply to interactive sessions
+[[ "$-" != *i* ]] && return
+
+# Prevent multiple sourcing
+[[ -n "${_SECURITY_HARDENING_LOADED}" ]] && return
+_SECURITY_HARDENING_LOADED=1
+
+# ============================================================================
+# SECURITY SETTINGS
+# ============================================================================
+
+# Set secure umask (027 = rwxr-x--- for new files/directories)
+# Files: rw-r----- (640), Directories: rwxr-x--- (750)
+umask 027
+
+# Set session timeout (auto-logout after 15 minutes of inactivity)
+# Skip for root and sudo group members — avoid disrupting active maintenance
+if [[ "${EUID}" -ne 0 ]] && ! id -nG 2>/dev/null | grep -qw sudo; then
+    TMOUT={{ session_timeout }}
+    readonly TMOUT
+    export TMOUT
+fi
+
+# Restrict core dumps (prevent sensitive data leakage)
+ulimit -c 0
+
+# Safer globbing
+set -o noclobber
+
+# ============================================================================
+# HISTORY SETTINGS
+# ============================================================================
+
+# History file size
+export HISTSIZE=10000
+export HISTFILESIZE=10000
+
+# Don't save duplicate commands or commands starting with a space
+export HISTCONTROL=ignoreboth
+
+# Add timestamps to history entries
+export HISTTIMEFORMAT="%F %T "
+
+# Exclude sensitive and trivial commands from history
+export HISTIGNORE="ls:ll:la:l:cd:pwd:clear:exit:history:bg:fg"
+
+# Append to history instead of overwriting (important with multiple sessions)
+shopt -s histappend
+
+# Make history settings immutable for non-privileged users
+if [[ "${EUID}" -ne 0 ]] && ! id -nG 2>/dev/null | grep -qw sudo; then
+    readonly HISTCONTROL HISTIGNORE HISTTIMEFORMAT HISTSIZE HISTFILESIZE
+fi
+
+# ============================================================================
+# CONVENIENCE ALIASES
+# ============================================================================
+
+# Safety aliases (prevent accidental deletion/overwrite)
+alias rm='rm -I'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Enhanced directory listings
+alias ll='ls -lahF'
+alias la='ls -lhAF'
+alias l='ls -CF'
+
+# Human-readable disk usage
+alias df='df -h'
+alias du='du -h'
+
+# Process search
+alias psg='pgrep -af'

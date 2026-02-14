@@ -1,0 +1,32 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Password history enforcement via pam_pwhistory.
+#   Prevents reuse of the last N passwords.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@gymnasium.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+{% if pam_pwhistory_enforce_for_root %}
+# Root account passwords are also remembered
+enforce_for_root
+{% endif %}
+
+# Use the password provided by a previously stacked module
+use_authtok
+
+# Number of previous passwords to remember
+remember = {{ pam_pwhistory_remember }}

@@ -1,0 +1,14 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Shell environment hardening
+
+- name: Deploy security hardening profile script
+  ansible.builtin.template:
+    src: 60-security-hardening.sh.j2
+    dest: /etc/profile.d/60-security-hardening.sh
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - accounts
+    - accounts_shell

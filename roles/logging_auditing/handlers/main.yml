@@ -1,0 +1,17 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for logging_auditing
+- name: Restart journald
+  ansible.builtin.systemd:
+    name: systemd-journald
+    state: restarted
+
+- name: Restart auditd
+  ansible.builtin.command:
+    cmd: service auditd restart
+  changed_when: true
+
+- name: Load audit rules
+  ansible.builtin.command:
+    cmd: augenrules --load
+  changed_when: true

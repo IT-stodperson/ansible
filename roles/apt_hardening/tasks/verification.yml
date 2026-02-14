@@ -1,0 +1,31 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Verify APT permission hardening was applied correctly.
+
+- name: Verify no GPG files with bad permissions remain
+  ansible.builtin.shell:
+    cmd: |
+      set -eou pipefail
+      find -L /usr/share/keyrings/ /etc/apt/trusted.gpg.d/ \
+        -mount -xdev -type f \
+        \( ! -user root -o ! -group root -o -perm /133 \) \
+        \( -name '*.gpg' -o -name '*.asc' -o -name '*.pgp' \) \
+        2>/dev/null
+    executable: /bin/bash
+  register: gpg_verify
+  changed_when: false
+  failed_when: gpg_verify.stdout | length > 0
+
+- name: Verify no sources files with bad permissions remain
+  ansible.builtin.shell:
+    cmd: |
+      set -eou pipefail
+      find -L /etc/apt/sources.list.d/ \
+        -mount -xdev -type f \
+        \( ! -user root -o ! -group root -o -perm /133 \) \
+        \( -name '*.list' -o -name '*.sources' \) \
+        2>/dev/null
+    executable: /bin/bash
+  register: sources_verify
+  changed_when: false
+  failed_when: sources_verify.stdout | length > 0

@@ -1,0 +1,20 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the apt_hardening role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# ---------------------------------------------------------------------------
+# APT configuration
+# ---------------------------------------------------------------------------
+apt_install_recommends: "0"
+apt_install_suggests: "0"
+apt_acquire_languages: "none"
+
+# ---------------------------------------------------------------------------
+# Directory permissions
+# ---------------------------------------------------------------------------
+apt_directories:
+  - /etc/apt/trusted.gpg.d
+  - /etc/apt/auth.conf.d
+  - /etc/apt/sources.list.d
+  - /usr/share/keyrings

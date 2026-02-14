@@ -1,0 +1,53 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Safely refreshes the MOTD package update cache at /run/motd-update-cache.
+#   Uses atomic writes, input validation, and timeout protection.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+set -euo pipefail
+
+readonly CACHE_FILE="/run/motd-update-cache"
+readonly TEMP_FILE="${CACHE_FILE}.tmp.$$"
+readonly SAFE_DEFAULT="0 0"
+
+trap 'rm -f "$TEMP_FILE"' EXIT
+
+# Write safe default if apt-get is unavailable
+if ! command -v apt-get &>/dev/null; then
+    echo "$SAFE_DEFAULT" > "$CACHE_FILE"
+    chmod 644 "$CACHE_FILE"
+    exit 0
+fi
+
+# Simulate dist-upgrade with timeout, parse install counts
+if ! timeout 30 apt-get -s dist-upgrade 2>/dev/null | \
+    awk '/^Inst /{t++; if(/\/stable-security/) s++}
+         END{print (t+0), (s+0)}' > "$TEMP_FILE" 2>/dev/null; then
+    echo "$SAFE_DEFAULT" > "$TEMP_FILE"
+fi
+
+# Validate output is exactly two non-negative integers
+if grep -qxE '[0-9]+ [0-9]+' "$TEMP_FILE"; then
+    mv -f "$TEMP_FILE" "$CACHE_FILE"
+else
+    echo "$SAFE_DEFAULT" > "$CACHE_FILE"
+fi
+
+chmod 644 "$CACHE_FILE"

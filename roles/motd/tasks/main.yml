@@ -1,0 +1,17 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for motd
+
+# =============================================================================
+# MOTD — Main task entry point
+# =============================================================================
+# Deploys cache update script, systemd service/timer, and APT hook.
+#
+# To deploy host-specific MOTD scripts, use the motd-deploy playbook:
+#   ansible-playbook playbooks/motd-deploy.yml --limit <host> -e motd_script=10-custom-wazuh
+
+- name: Deploy MOTD cache infrastructure
+  ansible.builtin.import_tasks: cache_infrastructure.yml
+  tags:
+    - motd
+    - motd_cache

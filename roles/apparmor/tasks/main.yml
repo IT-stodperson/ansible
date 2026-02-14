@@ -1,0 +1,46 @@
+#SPDX-License-Identifier: MIT-0
+---
+# AppArmor hardening for Debian servers.
+
+- name: Install AppArmor and utilities
+  ansible.builtin.apt:
+    name:
+      - apparmor
+      - apparmor-utils
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure AppArmor service is enabled and running
+  ansible.builtin.systemd:
+    name: apparmor
+    enabled: true
+    state: started
+
+- name: Enforce all AppArmor profiles
+  ansible.builtin.shell:
+    cmd: aa-enforce /etc/apparmor.d/*
+  register: aa_enforce_result
+  changed_when: "'Setting' in aa_enforce_result.stdout"
+
+- name: Check that AppArmor is not disabled in GRUB defaults
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      grep -r "apparmor=0" /etc/default/grub /etc/default/grub.d/ 2>/dev/null
+    executable: /bin/bash
+  register: grub_check
+  changed_when: false
+  failed_when: false
+
+- name: Warn if AppArmor is disabled in GRUB
+  ansible.builtin.fail:
+    msg: >-
+      WARNING: AppArmor is disabled via GRUB on {{ inventory_hostname }}.
+      The kernel boot parameters contain 'apparmor=0'.
+      This must be corrected manually:
+        1. Edit the file shown above in /etc/default/grub or /etc/default/grub.d/
+        2. Remove 'apparmor=0'
+        3. Run 'update-grub'
+        4. Reboot the server
+  when: grub_check.rc == 0

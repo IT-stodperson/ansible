@@ -1,0 +1,38 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Account lockout policy after consecutive failed authentication attempts.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# Log the user name if the user is not found
+audit
+
+# Lock account after this many consecutive failures
+deny = 3
+
+# Time window (seconds) in which failures are counted
+fail_interval = 900
+
+# Re-enable access after this many seconds (0 = manual unlock only)
+unlock_time = 900
+
+# Root account can also be locked
+even_deny_root
+
+# Root unlock time (seconds)
+root_unlock_time = 900

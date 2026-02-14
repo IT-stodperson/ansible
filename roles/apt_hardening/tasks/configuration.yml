@@ -1,0 +1,19 @@
+#SPDX-License-Identifier: MIT-0
+---
+# APT configuration hardening — disable weak dependencies and translations.
+
+- name: Disable weak dependencies (Recommends and Suggests)
+  ansible.builtin.template:
+    src: 60no-weak-dependencies.conf.j2
+    dest: /etc/apt/apt.conf.d/60no-weak-dependencies
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Disable translation downloads
+  ansible.builtin.template:
+    src: 99disable-translations.conf.j2
+    dest: /etc/apt/apt.conf.d/99disable-translations
+    owner: root
+    group: root
+    mode: '0644'

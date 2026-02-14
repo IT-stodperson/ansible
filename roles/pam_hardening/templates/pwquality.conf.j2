@@ -1,0 +1,66 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Password quality requirements enforced by libpam-pwquality.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@gymnasium.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# Number of characters in the new password that must not be present in the
+# old password.
+difok = {{ pam_pwquality_difok }}
+
+# Minimum acceptable size for the new password.
+# Cannot be set to lower value than 6.
+minlen = {{ pam_pwquality_minlen }}
+
+# Require at least 1 digit
+dcredit = {{ pam_pwquality_dcredit }}
+
+# Require at least 1 uppercase character
+ucredit = {{ pam_pwquality_ucredit }}
+
+# Require at least 1 lowercase character
+lcredit = {{ pam_pwquality_lcredit }}
+
+# Require at least 1 special character
+ocredit = {{ pam_pwquality_ocredit }}
+
+# Minimum number of required character classes (digits, upper, lower, other)
+minclass = {{ pam_pwquality_minclass }}
+
+# Maximum allowed consecutive same characters
+maxrepeat = {{ pam_pwquality_maxrepeat }}
+
+# Maximum length of monotonic character sequences (e.g., 12345, fedcb)
+maxsequence = {{ pam_pwquality_maxsequence }}
+
+# Check for words from the cracklib dictionary
+dictcheck = {{ pam_pwquality_dictcheck }}
+
+# Check if password contains the username in some form
+usercheck = {{ pam_pwquality_usercheck }}
+
+# Length of substrings from the username to check for in the password
+usersubstr = {{ pam_pwquality_usersubstr }}
+
+# Reject passwords that fail quality checks
+enforcing = {{ pam_pwquality_enforcing }}
+
+{% if pam_pwquality_enforce_for_root %}
+# Enforce quality checks on root password as well
+enforce_for_root
+{% endif %}

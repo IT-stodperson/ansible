@@ -1,0 +1,31 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for grub_hardening
+
+# =============================================================================
+# GRUB Hardening — Main task entry point
+# =============================================================================
+
+- name: Configure GRUB password protection
+  ansible.builtin.import_tasks: grub_password.yml
+  tags:
+    - grub
+    - grub_password
+
+- name: Configure boot parameters and unrestricted boot
+  ansible.builtin.import_tasks: boot_parameters.yml
+  tags:
+    - grub
+    - grub_boot_params
+
+- name: Lock down GRUB file permissions
+  ansible.builtin.import_tasks: permissions.yml
+  tags:
+    - grub
+    - grub_permissions
+
+- name: Verify GRUB hardening
+  ansible.builtin.import_tasks: verify.yml
+  tags:
+    - grub
+    - grub_verify

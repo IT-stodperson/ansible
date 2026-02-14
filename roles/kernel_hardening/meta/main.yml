@@ -1,0 +1,27 @@
+#SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  author: Tobias Svenblad
+  description: >-
+    Kernel hardening for Debian servers — module blacklisting, sysctl
+    security parameters, and process/core dump limits.
+  company: IT-stödperson
+  issue_tracker_url: https://github.com/IT-stodperson/ansible/issues
+  license: MIT
+  min_ansible_version: 2.20
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - security
+    - kernel
+    - hardening
+    - debian
+    - sysctl
+dependencies: []

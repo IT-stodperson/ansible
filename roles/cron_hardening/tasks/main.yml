@@ -1,0 +1,19 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for cron_hardening
+
+# =============================================================================
+# Cron Hardening — Main task entry point
+# =============================================================================
+
+- name: Configure cron access control
+  ansible.builtin.import_tasks: access_control.yml
+  tags:
+    - cron
+    - cron_access
+
+- name: Harden cron file and directory permissions
+  ansible.builtin.import_tasks: permissions.yml
+  tags:
+    - cron
+    - cron_permissions

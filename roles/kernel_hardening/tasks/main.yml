@@ -1,0 +1,25 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for kernel_hardening
+
+# =============================================================================
+# Kernel Hardening — Main task entry point
+# =============================================================================
+
+- name: Blacklist dangerous kernel modules
+  ansible.builtin.import_tasks: modules.yml
+  tags:
+    - kernel
+    - kernel_modules
+
+- name: Deploy sysctl hardening parameters
+  ansible.builtin.import_tasks: sysctl.yml
+  tags:
+    - kernel
+    - kernel_sysctl
+
+- name: Restrict process limits and core dumps
+  ansible.builtin.import_tasks: limits.yml
+  tags:
+    - kernel
+    - kernel_limits

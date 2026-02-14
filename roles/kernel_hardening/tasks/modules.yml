@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# kernel_hardening — kernel module blacklisting
+
+- name: Deploy kernel module blacklist
+  ansible.builtin.template:
+    src: hardening-modprobe.conf.j2
+    dest: /etc/modprobe.d/kernel-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+    trim_blocks: true

@@ -1,0 +1,20 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Cron file and directory permission hardening.
+
+- name: Ensure cron directories have correct ownership and permissions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: '0700'
+    follow: true
+  loop: "{{ cron_directories }}"
+
+- name: Ensure crontab has correct ownership and permissions
+  ansible.builtin.file:
+    path: /etc/crontab
+    owner: root
+    group: root
+    mode: '0600'
+    follow: true

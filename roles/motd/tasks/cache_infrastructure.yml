@@ -1,0 +1,49 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Deploy the MOTD cache update script, systemd units, and APT hook.
+
+- name: Deploy MOTD cache update script
+  ansible.builtin.template:
+    src: update-motd-cache.sh.j2
+    dest: /usr/local/bin/update-motd-cache.sh
+    owner: root
+    group: root
+    mode: "0755"
+    trim_blocks: true
+
+- name: Deploy MOTD update cache service
+  ansible.builtin.template:
+    src: motd-update-cache.service.j2
+    dest: /etc/systemd/system/motd-update-cache.service
+    owner: root
+    group: root
+    mode: "0644"
+    trim_blocks: true
+  notify: Reload systemd daemon
+
+- name: Deploy MOTD update cache timer
+  ansible.builtin.template:
+    src: motd-update-cache.timer.j2
+    dest: /etc/systemd/system/motd-update-cache.timer
+    owner: root
+    group: root
+    mode: "0644"
+    trim_blocks: true
+  notify:
+    - Reload systemd daemon
+    - Enable and start MOTD cache timer
+
+- name: Deploy APT hook for MOTD cache refresh
+  ansible.builtin.template:
+    src: 99motd-cache.j2
+    dest: /etc/apt/apt.conf.d/99motd-cache
+    owner: root
+    group: root
+    mode: "0644"
+    trim_blocks: true
+
+- name: Ensure MOTD cache timer is enabled and running
+  ansible.builtin.systemd_service:
+    name: motd-update-cache.timer
+    enabled: true
+    state: started

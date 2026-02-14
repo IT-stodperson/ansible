@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Kernel hardening for Debian servers
+  hosts: debian_servers
+  become: true
+  roles:
+    - role: kernel_hardening

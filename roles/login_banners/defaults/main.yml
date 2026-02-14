@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the login_banners role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# ---------------------------------------------------------------------------
+# Banner deployment
+# ---------------------------------------------------------------------------
+# Source file shipped in the role's files/ directory.
+login_banners_src: banner.txt
+
+# ---------------------------------------------------------------------------
+# MOTD cleanup
+# ---------------------------------------------------------------------------
+# Whether to remove static MOTD files.
+login_banners_remove_motd: true
+
+# Files to remove when login_banners_remove_motd is true.
+login_banners_motd_files:
+  - /etc/motd
+  - /etc/update-motd.d/10-uname

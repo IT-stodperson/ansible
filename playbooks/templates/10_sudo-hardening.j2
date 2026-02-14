@@ -1,0 +1,84 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Sudo security hardening defaults and service account configuration.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template or inventory variables and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# ============================================================================
+# Environment and Timing
+# ============================================================================
+
+# Reset environment variables to prevent malicious environment exploitation
+Defaults env_reset
+
+# Sudo session timeout: 15 minutes of inactivity before requiring password again
+Defaults timestamp_timeout=15
+
+# Maximum time to enter password: 1 minute
+Defaults passwd_timeout=1
+
+# Use global timestamp (one password prompt per session, not per terminal)
+Defaults timestamp_type=global
+
+# ============================================================================
+# Logging
+# ============================================================================
+
+# Log all sudo commands to dedicated log file
+Defaults logfile="/var/log/sudo.log"
+
+# Log input and output of all sudo commands for full audit trail
+Defaults log_input
+Defaults log_output
+
+# Directory for storing I/O logs
+Defaults iolog_dir="/var/log/sudo-io"
+
+# ============================================================================
+# Security Hardening
+# ============================================================================
+
+# Force pseudo-terminal allocation to prevent certain attacks
+Defaults use_pty
+
+# Restrict PATH to prevent malicious binaries from being executed
+Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# ============================================================================
+# Password Policy
+# ============================================================================
+
+# Maximum number of password attempts before failing
+Defaults passwd_tries=3
+
+# ============================================================================
+# Alerts (Optional)
+# ============================================================================
+
+# Send email alert on failed sudo password attempts
+Defaults mail_badpass
+
+# Email address to receive sudo security alerts
+Defaults mailto="itstodperson@gymnasium.ax"
+
+# ============================================================================
+# Service Accounts
+# ============================================================================
+
+# Ansible automation — requires passwordless sudo for remote management
+ansible ALL=(ALL) NOPASSWD: ALL

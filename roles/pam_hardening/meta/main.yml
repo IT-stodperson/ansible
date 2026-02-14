@@ -1,0 +1,25 @@
+---
+galaxy_info:
+  author: Tobias Svenblad
+  description: >-
+    PAM hardening for Debian servers — password quality, account lockout,
+    password history, su restriction, and removal of nullok.
+  company: IT-stödperson
+  issue_tracker_url: https://bitbucket.org/itstodperson/ansible/
+  license: MIT
+  min_ansible_version: 2.15
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - security
+    - pam
+    - hardening
+    - debian
+dependencies: []

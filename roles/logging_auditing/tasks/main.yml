@@ -1,0 +1,106 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Logging and auditing hardening for Debian servers.
+
+# ===========================================================================
+# JOURNALD HARDENING
+# ===========================================================================
+
+- name: Ensure journald drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    follow: true
+
+- name: Deploy journald hardening configuration
+  ansible.builtin.template:
+    src: 50-journald-hardening.conf.j2
+    dest: /etc/systemd/journald.conf.d/50-security-hardening.conf
+    owner: root
+    group: root
+    mode: '0644'
+    trim_blocks: true
+  notify: Restart journald
+
+# ===========================================================================
+# AUDITD INSTALLATION AND CONFIGURATION
+# ===========================================================================
+
+- name: Install auditd and plugins
+  ansible.builtin.apt:
+    name:
+      - auditd
+      - audispd-plugins
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Deploy auditd daemon configuration
+  ansible.builtin.template:
+    src: auditd.conf.j2
+    dest: /etc/audit/auditd.conf
+    owner: root
+    group: root
+    mode: '0640'
+    trim_blocks: true
+  notify: Restart auditd
+
+# ===========================================================================
+# HOST-SPECIFIC AUDIT RULES
+# ===========================================================================
+# Audit rules are host-specific — each server type monitors different
+# services and paths. Rules are stored as:
+#   templates/audit-rules/<inventory_hostname>.rules.j2
+#
+# If no host-specific rules file exists, this section is skipped.
+# To add rules for a new server, create the template and re-run.
+
+- name: Check if host-specific audit rules template exists
+  ansible.builtin.stat:
+    path: "{{ role_path }}/templates/audit-rules/{{ inventory_hostname }}.rules.j2"
+  delegate_to: localhost
+  become: false
+  register: audit_rules_template
+
+- name: Deploy host-specific audit rules
+  ansible.builtin.template:
+    src: "audit-rules/{{ inventory_hostname }}.rules.j2"
+    dest: /etc/audit/rules.d/audit.rules
+    owner: root
+    group: root
+    mode: '0640'
+    trim_blocks: true
+  when: audit_rules_template.stat.exists | bool
+  notify: Load audit rules
+
+- name: Warn if no host-specific audit rules found
+  ansible.builtin.debug:
+    msg: >-
+      No audit rules template found at
+      templates/audit-rules/{{ inventory_hostname }}.rules.j2 —
+      skipping audit rules deployment. Base auditd config was still applied.
+  when: not (audit_rules_template.stat.exists | bool)
+
+# ===========================================================================
+# ENABLE SERVICES
+# ===========================================================================
+
+- name: Ensure auditd is enabled and running
+  ansible.builtin.systemd:
+    name: auditd
+    enabled: true
+    state: started
+
+# ===========================================================================
+# POST-DEPLOYMENT REMINDERS
+# ===========================================================================
+
+- name: Remind about FSS key setup
+  ansible.builtin.debug:
+    msg: >-
+      MANUAL STEP REQUIRED: Run 'sudo journalctl --setup-keys' on
+      {{ inventory_hostname }} to generate Forward Secure Sealing keys.
+      Save the verification key in KeePass.

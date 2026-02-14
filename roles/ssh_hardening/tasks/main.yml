@@ -1,0 +1,124 @@
+#SPDX-License-Identifier: MIT-0
+---
+# SSH hardening for Debian servers.
+
+# ===========================================================================
+# PREREQUISITES
+# ===========================================================================
+
+- name: Ensure ansible group exists
+  ansible.builtin.group:
+    name: ansible
+    state: present
+
+- name: Ensure ansible user is in ansible group
+  ansible.builtin.user:
+    name: ansible
+    groups: ansible
+    append: true
+
+# ===========================================================================
+# DIFFIE-HELLMAN MODULI
+# ===========================================================================
+
+- name: Check for weak Diffie-Hellman moduli
+  ansible.builtin.shell:
+    cmd: awk '$5 < {{ ssh_moduli_min_bits }}' /etc/ssh/moduli | wc -l
+    executable: /bin/bash
+  register: weak_moduli_count
+  changed_when: false
+
+- name: Filter weak Diffie-Hellman moduli
+  ansible.builtin.shell:
+    cmd: |
+      set -euo pipefail
+      awk '$5 >= {{ ssh_moduli_min_bits }}' /etc/ssh/moduli > /etc/ssh/moduli.tmp
+      mv /etc/ssh/moduli.tmp /etc/ssh/moduli
+    executable: /bin/bash
+  when: (weak_moduli_count.stdout | int) > 0
+  notify: Validate and restart SSH
+
+# ===========================================================================
+# SSH CONFIGURATION
+# ===========================================================================
+
+- name: Deploy SSH security hardening configuration
+  ansible.builtin.template:
+    src: ssh-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/ssh-hardening.conf
+    owner: root
+    group: root
+    mode: '0600'
+    trim_blocks: true
+  notify: Validate and restart SSH
+
+# ===========================================================================
+# FILE PERMISSIONS - CONFIGURATION
+# ===========================================================================
+
+- name: Set permissions on sshd_config
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+    follow: true
+
+- name: Find all sshd_config.d files
+  ansible.builtin.find:
+    paths: /etc/ssh/sshd_config.d
+    patterns: '*.conf'
+    follow: true
+  register: sshd_config_files
+
+- name: Set permissions on sshd_config.d files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0600'
+    follow: true
+  loop: "{{ sshd_config_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+# ===========================================================================
+# FILE PERMISSIONS - HOST KEYS
+# ===========================================================================
+
+- name: Find SSH private host keys
+  ansible.builtin.find:
+    paths: /etc/ssh
+    patterns: 'ssh_host_*_key'
+    excludes: '*.pub'
+    follow: true
+  register: ssh_private_keys
+
+- name: Set permissions on SSH private host keys
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0600'
+    follow: true
+  loop: "{{ ssh_private_keys.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Find SSH public host keys
+  ansible.builtin.find:
+    paths: /etc/ssh
+    patterns: 'ssh_host_*_key.pub'
+    follow: true
+  register: ssh_public_keys
+
+- name: Set permissions on SSH public host keys
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0644'
+    follow: true
+  loop: "{{ ssh_public_keys.files }}"
+  loop_control:
+    label: "{{ item.path }}"

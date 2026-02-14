@@ -1,0 +1,13 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for ssh_hardening
+- name: Validate and restart SSH
+  ansible.builtin.command:
+    cmd: sshd -t
+  changed_when: true
+  notify: Restart SSH
+
+- name: Restart SSH
+  ansible.builtin.systemd:
+    name: sshd
+    state: restarted

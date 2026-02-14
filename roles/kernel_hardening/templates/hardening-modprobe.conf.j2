@@ -1,0 +1,30 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Kernel module blacklist for security hardening.
+#   Prevents loading of unnecessary or dangerous kernel modules.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template or blacklisted_modules variable and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+{% for mod in blacklisted_modules %}
+# {{ mod.comment }}
+install {{ mod.name }} /bin/false
+blacklist {{ mod.name }}
+{% if not loop.last %}
+
+{% endif %}
+{% endfor %}

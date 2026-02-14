@@ -1,0 +1,45 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   PAM unix authentication profile with nullok removed for security.
+#   Prevents authentication with empty passwords.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+Name: Unix authentication
+Default: yes
+Priority: 256
+Auth-Type: Primary
+Auth:
+        [success=end default=ignore]    pam_unix.so try_first_pass
+Auth-Initial:
+        [success=end default=ignore]    pam_unix.so
+Account-Type: Primary
+Account:
+        [success=end new_authtok_reqd=done default=ignore]      pam_unix.so
+Account-Initial:
+        [success=end new_authtok_reqd=done default=ignore]      pam_unix.so
+Session-Type: Additional
+Session:
+        required        pam_unix.so
+Session-Initial:
+        required        pam_unix.so
+Password-Type: Primary
+Password:
+        [success=end default=ignore]    pam_unix.so obscure use_authtok try_first_pass yescrypt
+Password-Initial:
+        [success=end default=ignore]    pam_unix.so obscure yescrypt

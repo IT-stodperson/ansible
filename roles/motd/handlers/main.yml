@@ -1,0 +1,13 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for motd
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Enable and start MOTD cache timer
+  ansible.builtin.systemd_service:
+    name: motd-update-cache.timer
+    enabled: true
+    state: restarted

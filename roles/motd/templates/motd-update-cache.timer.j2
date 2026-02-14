@@ -1,0 +1,31 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Timer that triggers the MOTD package update cache refresh.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+[Unit]
+Description=Refresh MOTD package update cache every {{ motd_cache_timer_interval }}
+
+[Timer]
+OnBootSec={{ motd_cache_timer_boot_delay }}
+OnUnitActiveSec={{ motd_cache_timer_interval }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

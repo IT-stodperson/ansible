@@ -1,0 +1,22 @@
+---
+- name: Deploy pwhistory PAM profile
+  ansible.builtin.template:
+    src: pam_pwhistory.j2
+    dest: /usr/share/pam-configs/pam_pwhistory
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Rebuild PAM configuration
+
+- name: Deploy pwhistory configuration
+  ansible.builtin.template:
+    src: pwhistory.conf.j2
+    dest: /etc/security/pwhistory.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable pwhistory PAM profile
+  ansible.builtin.command:
+    cmd: pam-auth-update --enable pwhistory
+  changed_when: false

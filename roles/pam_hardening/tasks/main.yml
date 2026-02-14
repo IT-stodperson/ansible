@@ -1,0 +1,37 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for pam_hardening
+
+# =============================================================================
+# PAM Hardening — Main task entry point
+# =============================================================================
+
+- name: Restrict su command
+  ansible.builtin.import_tasks: su_restriction.yml
+  tags:
+    - pam
+    - pam_su
+
+- name: Configure password quality (pwquality)
+  ansible.builtin.import_tasks: pwquality.yml
+  tags:
+    - pam
+    - pam_pwquality
+
+- name: Configure account lockout (faillock)
+  ansible.builtin.import_tasks: faillock.yml
+  tags:
+    - pam
+    - pam_faillock
+
+- name: Configure password history (pwhistory)
+  ansible.builtin.import_tasks: pwhistory.yml
+  tags:
+    - pam
+    - pam_pwhistory
+
+- name: Harden unix authentication
+  ansible.builtin.import_tasks: unix.yml
+  tags:
+    - pam
+    - pam_unix

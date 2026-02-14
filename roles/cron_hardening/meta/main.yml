@@ -1,0 +1,26 @@
+#SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  author: Tobias Svenblad
+  description: >-
+    Cron hardening for Debian servers — restrict cron access via
+    cron.allow and enforce strict permissions on cron files and directories.
+  company: IT-stödperson
+  issue_tracker_url: https://github.com/IT-stodperson/ansible/issues
+  license: MIT
+  min_ansible_version: 2.20
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - security
+    - cron
+    - hardening
+    - debian
+dependencies: []

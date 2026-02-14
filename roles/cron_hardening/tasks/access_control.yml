@@ -1,0 +1,24 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Cron access control — restrict who can use cron via cron.allow.
+
+- name: Check if crontab group exists
+  ansible.builtin.command:
+    cmd: getent group crontab
+  register: crontab_group
+  changed_when: false
+  failed_when: false
+
+- name: Deploy cron.allow with allowed users
+  ansible.builtin.template:
+    src: cron.allow.j2
+    dest: /etc/cron.allow
+    owner: root
+    group: "{{ 'crontab' if crontab_group.rc == 0 else 'root' }}"
+    mode: '0600'
+
+- name: Remove cron.deny to enforce cron.allow
+  ansible.builtin.file:
+    path: /etc/cron.deny
+    state: absent
+    follow: true

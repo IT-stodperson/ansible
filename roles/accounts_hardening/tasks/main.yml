@@ -1,0 +1,25 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for accounts_hardening
+
+# =============================================================================
+# Accounts Hardening — Main task entry point
+# =============================================================================
+
+- name: Configure shadow password defaults (login.defs)
+  ansible.builtin.import_tasks: login_defs.yml
+  tags:
+    - accounts
+    - accounts_login_defs
+
+- name: Enforce password aging on existing accounts
+  ansible.builtin.import_tasks: password_aging.yml
+  tags:
+    - accounts
+    - accounts_aging
+
+- name: Harden shell environment
+  ansible.builtin.import_tasks: shell_hardening.yml
+  tags:
+    - accounts
+    - accounts_shell

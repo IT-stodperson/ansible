@@ -1,0 +1,22 @@
+// ---------------------------------------------------------------------------
+// THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+//
+// Purpose:
+//   APT hook that triggers MOTD cache refresh after package operations.
+//
+// Source:
+//   Template: {{ template_path }}
+//   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+//
+// Changes:
+//   Edit the template and re-run Ansible.
+//   Manual changes will be overwritten on the next playbook run.
+//
+// Contact:
+//   IT-stödperson <itstodperson@its.ax>
+//
+// Deployed to: {{ inventory_hostname }}
+// Generated:   {{ template_run_date }}
+// ---------------------------------------------------------------------------
+
+DPkg::Post-Invoke { "systemctl start motd-update-cache.service 2>/dev/null || true"; };

@@ -1,0 +1,147 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Sysctl kernel, filesystem, and network security hardening parameters.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# ==============================================================================
+# KERNEL SECURITY
+# ==============================================================================
+
+# Disable automatic TTY line discipline loading
+dev.tty.ldisc_autoload = 0
+
+# Restrict unprivileged processes from changing AppArmor profiles
+kernel.apparmor_restrict_unprivileged_unconfined = 1
+
+# Restrict non-root users from viewing kernel logs
+kernel.dmesg_restrict = 1
+
+# Restrict access to kernel pointers in /proc and /sys
+kernel.kptr_restrict = 2
+
+# Enable full ASLR (Address Space Layout Randomization)
+kernel.randomize_va_space = 2
+
+# Disable SysRq key (emergency recovery commands)
+kernel.sysrq = 0
+
+# Disable unprivileged BPF (Berkeley Packet Filter)
+kernel.unprivileged_bpf_disabled = 1
+
+# Prevent unprivileged users from creating user namespaces
+kernel.unprivileged_userns_clone = 0
+
+# Restrict ptrace scope (3 = no processes can be traced)
+kernel.yama.ptrace_scope = 3
+
+# Harden BPF JIT compiler against JIT spraying attacks
+net.core.bpf_jit_harden = 2
+
+# ==============================================================================
+# FILESYSTEM PROTECTIONS
+# ==============================================================================
+
+# Protect FIFOs (named pipes) from hijacking attacks
+fs.protected_fifos = 2
+
+# Protect hardlinks from being created to files user doesn't own
+fs.protected_hardlinks = 1
+
+# Protect regular files from hijacking attacks
+fs.protected_regular = 2
+
+# Protect symlinks from being followed if unsafe
+fs.protected_symlinks = 1
+
+# Disable core dumps for setuid programs
+fs.suid_dumpable = 0
+
+# Disable core dump creation
+kernel.core_pattern = |/bin/false
+
+# Minimize swapping to disk (reduce sensitive data in swap)
+vm.swappiness = 1
+
+# ==============================================================================
+# NETWORK - ICMP SETTINGS
+# ==============================================================================
+
+# Ignore broadcast ICMP echo requests (smurf attack protection)
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+
+# Ignore bogus ICMP error responses
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+
+# ==============================================================================
+# NETWORK - IP FORWARDING
+# ==============================================================================
+
+# Disable IP forwarding (this server is not a router)
+net.ipv4.conf.all.forwarding = 0
+net.ipv4.conf.default.forwarding = 0
+net.ipv4.ip_forward = 0
+net.ipv6.conf.all.forwarding = 0
+net.ipv6.conf.default.forwarding = 0
+
+# ==============================================================================
+# NETWORK - LOGGING & PROTECTION
+# ==============================================================================
+
+# Log packets with impossible source addresses (martians)
+net.ipv4.conf.all.log_martians = 1
+net.ipv4.conf.default.log_martians = 1
+
+# Increase SYN backlog queue size (SYN flood protection)
+net.ipv4.tcp_max_syn_backlog = 4096
+
+# Protect against TIME-WAIT assassination attacks
+net.ipv4.tcp_rfc1337 = 1
+
+# Limit SYN-ACK retries to prevent resource exhaustion
+net.ipv4.tcp_synack_retries = 3
+
+# Enable TCP SYN cookies (SYN flood protection)
+net.ipv4.tcp_syncookies = 1
+
+# ==============================================================================
+# NETWORK - REDIRECTS
+# ==============================================================================
+
+# Disable accepting and sending ICMP redirects
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv6.conf.default.accept_redirects = 0
+
+# ==============================================================================
+# NETWORK - SOURCE ROUTING & FILTERING
+# ==============================================================================
+
+# Disable source routed packets (prevents IP spoofing)
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv6.conf.all.accept_source_route = 0
+net.ipv6.conf.default.accept_source_route = 0
+
+# Enable reverse path filtering (anti-spoofing)
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.default.rp_filter = 1

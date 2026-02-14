@@ -1,0 +1,25 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for apt_hardening
+
+# =============================================================================
+# APT Hardening — Main task entry point
+# =============================================================================
+
+- name: Harden APT configuration
+  ansible.builtin.import_tasks: configuration.yml
+  tags:
+    - apt
+    - apt_config
+
+- name: Harden APT file and directory permissions
+  ansible.builtin.import_tasks: permissions.yml
+  tags:
+    - apt
+    - apt_permissions
+
+- name: Verify APT permission hardening
+  ansible.builtin.import_tasks: verification.yml
+  tags:
+    - apt
+    - apt_verify

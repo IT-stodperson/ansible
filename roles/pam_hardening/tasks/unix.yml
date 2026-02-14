@@ -1,0 +1,14 @@
+---
+- name: Deploy hardened unix PAM profile
+  ansible.builtin.template:
+    src: unix.j2
+    dest: /usr/share/pam-configs/unix
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Rebuild PAM configuration
+
+- name: Enable unix PAM profile
+  ansible.builtin.command:
+    cmd: pam-auth-update --enable unix
+  changed_when: false

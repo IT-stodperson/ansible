@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# grub_hardening — verification checks
+
+- name: Verify GRUB password protection is configured
+  ansible.builtin.command:
+    cmd: grep -E "^set superusers|^password_pbkdf2" /boot/grub/grub.cfg
+  register: grub_verify
+  changed_when: false
+  failed_when: >
+    'set superusers' not in grub_verify.stdout or
+    'password_pbkdf2' not in grub_verify.stdout

@@ -1,0 +1,14 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Shadow password configuration — deploy login.defs
+
+- name: Deploy login.defs configuration
+  ansible.builtin.template:
+    src: login.defs.j2
+    dest: /etc/login.defs
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - accounts
+    - accounts_login_defs

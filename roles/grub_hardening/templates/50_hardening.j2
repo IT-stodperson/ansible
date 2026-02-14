@@ -1,0 +1,4 @@
+#!/bin/sh
+exec tail -n +2 "$0"
+set superusers="{{ grub_superuser }}"
+password_pbkdf2 {{ grub_superuser }} {{ grub_hash.stdout }}

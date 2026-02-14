@@ -1,0 +1,150 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Shadow password suite configuration: password aging, UID/GID ranges,
+#   encryption method, umask, and login security defaults.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+#
+# REQUIRED for useradd/userdel/usermod
+#   Directory where mailboxes reside, _or_ name of file, relative to the
+#   home directory.  If you _do_ define MAIL_DIR and MAIL_FILE,
+#   MAIL_DIR takes precedence.
+#
+MAIL_DIR        /var/mail
+
+#
+# Enable display of unknown usernames when login(1) failures are recorded.
+#
+# WARNING: Unknown usernames may become world readable.
+# See #290803 and #298773 for details about how this could become a security
+# concern
+LOG_UNKFAIL_ENAB        no
+
+#
+# Enable logging of successful logins
+#
+LOG_OK_LOGINS          yes
+
+#
+# If defined, file which inhibits all the usual chatter during the login
+# sequence.  If a full pathname, then hushed mode will be enabled if the
+# user's name or shell are found in the file.  If not a full pathname, then
+# hushed mode will be enabled if the file exists in the user's home directory.
+#
+HUSHLOGIN_FILE  .hushlogin
+
+#
+# *REQUIRED*  The default PATH settings, for superuser and normal users.
+#
+# (they are minimal, add the rest in the shell startup files)
+ENV_SUPATH      PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV_PATH        PATH=/usr/local/bin:/usr/bin:/bin
+
+#
+# Terminal permissions for terminals after login(1).
+#
+TTYPERM         0600
+
+#
+# Login configuration initializations:
+#
+ERASECHAR       0177
+KILLCHAR        025
+
+# HOME_MODE is used by useradd(8) and newusers(8) to set the mode for new
+# home directories.
+HOME_MODE       0700
+
+#
+# Password aging controls:
+#
+#       PASS_MAX_DAYS   Maximum number of days a password may be used.
+#       PASS_MIN_DAYS   Minimum number of days allowed between password changes.
+#       PASS_WARN_AGE   Number of days warning given before a password expires.
+#
+PASS_MAX_DAYS   {{ shadow_pass_max_days }}
+PASS_MIN_DAYS   {{ shadow_pass_min_days }}
+PASS_WARN_AGE   {{ shadow_pass_warn_age }}
+
+#
+# Min/max values for automatic uid selection in useradd(8)
+#
+UID_MIN                  1000
+UID_MAX                 60000
+SUB_UID_MIN                100000
+SUB_UID_MAX             600100000
+SUB_UID_COUNT               65536
+
+#
+# Min/max values for automatic gid selection in groupadd(8)
+#
+GID_MIN                  1000
+GID_MAX                 60000
+SUB_GID_MIN                100000
+SUB_GID_MAX             600100000
+SUB_GID_COUNT               65536
+
+#
+# Max number of login(1) retries if password is bad
+#
+LOGIN_RETRIES           3
+
+#
+# Max time in seconds for login(1)
+#
+LOGIN_TIMEOUT           60
+
+#
+# Which fields may be changed by regular users using chfn(1)
+#
+CHFN_RESTRICT           rwh
+
+#
+# Encryption method for passwords
+#
+ENCRYPT_METHOD YESCRYPT
+SHA_CRYPT_MIN_ROUNDS 250000
+SHA_CRYPT_MAX_ROUNDS 500000
+
+#
+# Should login be allowed if we can't cd to the home directory?
+#
+DEFAULT_HOME    yes
+
+#
+# Nonexistent home directory placeholder
+#
+NONEXISTENT     /nonexistent
+
+#
+# Remove user's group if it contains no more members
+#
+USERGROUPS_ENAB yes
+
+#
+# UMASK - Default permission mask for newly created files
+#
+# 027 = Files: 640 (rw-r-----), Directories: 750 (rwxr-x---)
+#
+UMASK           027
+
+#
+# Enable logging of failed login attempts
+#
+FAILLOG_ENAB    yes

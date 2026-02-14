@@ -1,0 +1,42 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for pam_hardening
+
+# ---------------------------------------------------------------------------
+# SU restriction
+# ---------------------------------------------------------------------------
+pam_su_group: nosu
+
+# ---------------------------------------------------------------------------
+# Password quality (pwquality)
+# ---------------------------------------------------------------------------
+pam_pwquality_difok: 2
+pam_pwquality_minlen: 8
+pam_pwquality_dcredit: -1
+pam_pwquality_ucredit: -1
+pam_pwquality_lcredit: -1
+pam_pwquality_ocredit: -1
+pam_pwquality_minclass: 3
+pam_pwquality_maxrepeat: 3
+pam_pwquality_maxsequence: 3
+pam_pwquality_dictcheck: 1
+pam_pwquality_usercheck: 1
+pam_pwquality_usersubstr: 3
+pam_pwquality_enforcing: 1
+pam_pwquality_enforce_for_root: true
+
+# ---------------------------------------------------------------------------
+# Account lockout (faillock)
+# ---------------------------------------------------------------------------
+pam_faillock_audit: true
+pam_faillock_deny: 3
+pam_faillock_fail_interval: 900
+pam_faillock_unlock_time: 900
+pam_faillock_even_deny_root: true
+pam_faillock_root_unlock_time: 900
+
+# ---------------------------------------------------------------------------
+# Password history (pwhistory)
+# ---------------------------------------------------------------------------
+pam_pwhistory_remember: 24
+pam_pwhistory_enforce_for_root: true

@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for pam_hardening
+- name: Rebuild PAM configuration
+  ansible.builtin.command:
+    cmd: pam-auth-update --force
+  listen: Rebuild PAM configuration

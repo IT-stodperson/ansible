@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Login banner deployment for Debian servers
+  hosts: debian_servers
+  become: true
+  roles:
+    - role: login_banners

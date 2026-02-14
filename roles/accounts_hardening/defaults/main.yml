@@ -1,0 +1,20 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the accounts_hardening role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# Password aging policy
+shadow_pass_max_days: 365
+shadow_pass_min_days: 1
+shadow_pass_warn_age: 35
+
+# Session timeout in seconds (15 minutes)
+session_timeout: 900
+
+# Accounts and groups exempt from password aging
+aging_exempt_users:
+  - ansible
+  - root
+
+aging_exempt_groups:
+  - teachers

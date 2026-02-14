@@ -1,0 +1,351 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Auditd rules for the WebFTP server (Apache2).
+#   Monitors system changes, privilege escalation, suspicious activity,
+#   and web server-specific events.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# Remove any existing rules
+-D
+
+# Buffer Size
+## Feel free to increase this if the machine panic's
+-b 8192
+
+# Failure Mode
+## Possible values: 0 (silent), 1 (printk, print a failure message), 2 (panic, halt the system)
+-f 1
+
+# Ignore errors
+## e.g. caused by users or files not found in the local environment
+-i
+
+# Self Auditing ---------------------------------------------------------------
+
+## Audit the audit logs
+### Successful and unsuccessful attempts to read information from the audit records
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/var/log/audit/ -F perm=wa -F auid>=1000 -F auid!=-1 -k auditlog_access
+
+## Auditd configuration
+### Modifications to audit configuration that occur while the audit collection functions are operating
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/audit/ -F perm=wa -k auditconfig
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/libaudit.conf -F perm=wa -k auditconfig
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/audit/plugins.d/ -F perm=wa -k audispconfig
+
+## Monitor for use of audit management tools
+-a always,exit -F arch=b64 -S execve -F path=/sbin/auditctl -k audittools
+-a always,exit -F arch=b64 -S execve -F path=/sbin/auditd -k audittools
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/auditd -k audittools
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/augenrules -k audittools
+
+## Access to all audit trails
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/ausearch -F auid>=1000 -F auid!=-1 -k audittools_query
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/aureport -F auid>=1000 -F auid!=-1 -k audittools_query
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/aulast -F auid>=1000 -F auid!=-1 -k audittools_query
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/aulastlogin -F auid>=1000 -F auid!=-1 -k audittools_query
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/auvirt -F auid>=1000 -F auid!=-1 -k audittools_query
+
+# Filters ---------------------------------------------------------------------
+
+### We put these early because audit is a first match wins system.
+## Cron jobs fill the logs with stuff we normally don't want (works with AppArmor)
+-a never,exit -F arch=b64 -S execve -F exe=/usr/sbin/cron
+
+## This is not very interesting and wastes a lot of space if the server is public facing
+-a always,exclude -F msgtype=CRYPTO_KEY_USER
+
+## High Volume Event Filter
+-a never,exit -F arch=b64 -S openat2,openat,open,unlink,unlinkat -F dir=/dev/shm/
+-a never,exit -F arch=b64 -S openat2,openat,open,unlink,unlinkat -F dir=/var/lock/lvm/
+
+# Rules -----------------------------------------------------------------------
+
+## Kernel parameters
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/sysctl.conf -F perm=wa -k sysctl
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/sysctl.d/ -F perm=wa -k sysctl
+
+## Kernel module loading and unloading
+-a always,exit -F arch=b64 -S init_module,finit_module,delete_module -F auid>=1000 -F auid!=-1 -k modules
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/lib/modules/ -F perm=wa -k modules
+-a always,exit -F arch=b64 -S execve -F path=/sbin/insmod -F auid>=1000 -F auid!=-1 -k modules
+-a always,exit -F arch=b64 -S execve -F path=/sbin/modprobe -F auid>=1000 -F auid!=-1 -k modules
+-a always,exit -F arch=b64 -S execve -F path=/sbin/rmmod -F auid>=1000 -F auid!=-1 -k modules
+
+-a always,exit -F arch=b64 -S execve -F path=/sbin/insmod -F auid!=-1 -k modules
+-a always,exit -F arch=b64 -S execve -F path=/sbin/modprobe -F auid!=-1 -k modules
+-a always,exit -F arch=b64 -S execve -F path=/sbin/rmmod -F auid!=-1 -k modules
+
+## Modprobe configuration
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/modprobe.conf -F perm=wa -k modprobe
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/modprobe.d/ -F perm=wa -k modprobe
+
+## Special files
+-a always,exit -F arch=b64 -S mknod,mknodat -F auid!=-1 -k specialfiles
+
+## Mount operations (only attributable)
+-a always,exit -F arch=b64 -S mount,umount2 -F auid!=-1 -k mount
+
+## Mount configuration (persistent mount changes)
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/fstab -F perm=wa -k mount_config
+
+## Change swap (only attributable)
+-a always,exit -F arch=b64 -S swapon,swapoff -F auid!=-1 -k swap
+
+## Time changes
+### System clock modifications
+-a always,exit -F arch=b64 -S adjtimex,settimeofday,clock_settime -F auid!=-1 -k time
+
+### Local time zone changes
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/localtime -F perm=wa -k localtime
+
+## Cron configuration & scheduled jobs
+### Cron access control
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/cron.allow -F perm=wa -k cron
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/cron.deny -F perm=wa -k cron
+
+### Cron directories and files
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/cron.d/ -F perm=wa -k cron
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/cron.daily/ -F perm=wa -k cron
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/cron.hourly/ -F perm=wa -k cron
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/cron.monthly/ -F perm=wa -k cron
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/cron.weekly/ -F perm=wa -k cron
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/crontab -F perm=wa -k cron
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/var/spool/cron/ -F perm=wa -k cron
+
+## User, group, password databases
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/group -F perm=wa -k identity
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/passwd -F perm=wa -k identity
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/gshadow -F perm=wa -k identity
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/shadow -F perm=wa -k identity
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/security/opasswd -F perm=wa -k identity
+
+## Sudoers file changes
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/sudoers -F perm=wa -k sudoers
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/sudoers.d/ -F perm=wa -k sudoers
+
+## Password changes
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/passwd -F auid>=1000 -F auid!=-1 -k passwd_modification
+
+## Group management tools
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/groupadd -F auid!=-1 -k group_modification
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/groupmod -F auid!=-1 -k group_modification
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/groupdel -F auid!=-1 -k group_modification
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/addgroup -F auid!=-1 -k group_modification
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/delgroup -F auid!=-1 -k group_modification
+
+## User management tools
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/useradd -F auid!=-1 -k user_modification
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/userdel -F auid!=-1 -k user_modification
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/usermod -F auid!=-1 -k user_modification
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/adduser -F auid!=-1 -k user_modification
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/deluser -F auid!=-1 -k user_modification
+
+## Login configuration and information
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/login.defs -F perm=wa -k login
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/var/log/lastlog -F perm=wa -k login
+
+## Network Environment
+### Changes to hostname
+-a always,exit -F arch=b64 -S sethostname,setdomainname -k network_modifications
+
+### Changes to network configuration files
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/hosts -F perm=wa -k network_modifications
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/hostname -F perm=wa -k network_modifications
+
+### DNS and name resolution
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/resolv.conf -F perm=wa -k network_modifications
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/nsswitch.conf -F perm=wa -k network_modifications
+
+### Debian networking (/etc/network/interfaces and related)
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/network/ -F perm=wa -k network_modifications
+
+### Changes to issue files (login banners)
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/issue -F perm=wa -k etcissue
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/issue.net -F perm=wa -k etcissue
+
+## System startup scripts
+### Legacy init scripts (SysV compatibility)
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/init.d/ -F perm=wa -k init
+
+## Bootloader configuration (tampering detection)
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/boot/grub/ -F perm=wa -k bootloader
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/default/grub -F perm=wa -k bootloader
+
+## Library search paths
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/ld.so.conf -F perm=wa -k libpath
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/ld.so.conf.d/ -F perm=wa -k libpath
+
+## Global environment variables
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/environment -F perm=wa -k environment
+
+## PAM configuration
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/pam.d/ -F perm=wa -k pam
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/security/limits.conf -F perm=wa -k pam
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/security/limits.d/ -F perm=wa -k pam
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/security/pam_env.conf -F perm=wa -k pam
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/security/namespace.conf -F perm=wa -k pam
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/security/namespace.d/ -F perm=wa -k pam
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/security/namespace.init -F perm=wa -k pam
+
+## Package manager configuration (supply chain protection)
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/apt/ -F perm=wa -k package_manager
+
+## SSH configuration (CRITICAL for server security)
+-a always,exit -F arch=b64 -S openat2,openat,open,unlink,unlinkat,rename,renameat,renameat2 -F dir=/etc/ssh/ -F perm=wa -k sshd_config
+
+## Root SSH key tampering
+-a always,exit -F arch=b64 -S openat2,openat,open,unlink,unlinkat,rename,renameat,renameat2 -F dir=/root/.ssh/ -F perm=wa -k rootkey
+
+## Systemd
+### Systemctl execution (privileged system control)
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/systemctl -F auid>=1000 -F auid!=-1 -k systemd
+
+### Systemd configuration changes
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/systemd/ -F perm=wa -k systemd
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/usr/lib/systemd/ -F perm=wa -k systemd
+
+### Systemd generators (only paths that exist)
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/usr/lib/systemd/system-generators/ -F perm=wa -k systemd_generator
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/usr/lib/systemd/user-generators/ -F perm=wa -k systemd_generator
+
+## AppArmor - Mandatory Access Control (Debian's MAC system)
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/apparmor.d/ -F perm=wa -k mac_policy
+
+## Critical elements access failures (detect unauthorized access attempts)
+### Monitor failed open attempts on critical files
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/shadow -F success=0 -k unauthedfileaccess
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/gshadow -F success=0 -k unauthedfileaccess
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/sudoers -F success=0 -k unauthedfileaccess
+
+## Privilege escalation tools
+### Monitor su and sudo execution
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/su -F auid!=-1 -k priv_esc
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/sudo -F auid!=-1 -k priv_esc
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/newgrp -F auid!=-1 -k priv_esc
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/sg -F auid!=-1 -k priv_esc
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/pkexec -F auid!=-1 -k priv_esc
+
+## Session initiation information
+### Failed login attempts (btmp)
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/var/log/btmp -F perm=wa -k session
+
+## Log tampering detection
+### Monitor writes to system logs (attackers clearing tracks)
+-a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat,renameat2 -F dir=/var/log/ -F auid>=1000 -F auid!=-1 -k log_tampering
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/var/log/syslog -F perm=w -F auid>=1000 -F auid!=-1 -k log_tampering
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/var/log/auth.log -F perm=w -F auid>=1000 -F auid!=-1 -k log_tampering
+
+## Discretionary Access Control (DAC) modifications
+### File permission changes
+-a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=-1 -k perm_mod
+
+### File ownership changes
+-a always,exit -F arch=b64 -S chown,fchown,fchownat,lchown -F auid>=1000 -F auid!=-1 -k perm_mod
+
+### Extended attribute changes
+-a always,exit -F arch=b64 -S setxattr,lsetxattr,fsetxattr -F auid>=1000 -F auid!=-1 -k perm_mod
+-a always,exit -F arch=b64 -S removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=-1 -k perm_mod
+
+# Apache2 Web Server -----------------------------------------------------------
+## Monitor Apache2 configuration changes
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/apache2/ -F perm=wa -k webserver_config
+
+### Monitor default web root (if used)
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/var/www/html/ -F perm=wa -k web_content
+
+## User Web Directories (UserDir)
+### Monitor creation/deletion of public_html directories (not content changes - too noisy)
+-a always,exit -F arch=b64 -S mkdir,mkdirat,rmdir,unlinkat,renameat,renameat2 -F dir=/home/ -F success=1 -k userdir_changes
+
+## File Deletion Monitoring (Detect unauthorized file removal)
+### Monitor deletion of files in critical areas
+-a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat,renameat2 -F dir=/etc/ -F auid>=1000 -F auid!=-1 -k file_deletion
+-a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat,renameat2 -F dir=/var/www/ -F auid>=1000 -F auid!=-1 -k file_deletion
+
+## Process Execution Monitoring (Detect suspicious commands)
+### Monitor execution of shells by web server (potential web shell detection)
+-a always,exit -F arch=b64 -S execve -F euid=33 -k webshell_execve
+-a always,exit -F arch=b64 -S execve -F uid=33 -k webshell_execve
+
+# Special Rules - Suspicious Activity Monitoring -------------------------------
+# NOTE: These rules are carefully curated to avoid noise from normal operations
+# We only monitor tools that are genuinely suspicious on a web/SFTP server
+
+## Network Tools (Potential Attack Tools)
+### Netcat/nc - Often used for reverse shells and port scanning
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/nc -F auid>=1000 -F auid!=-1 -k suspicious_network
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/netcat -F auid>=1000 -F auid!=-1 -k suspicious_network
+
+### Base64 encoding - Often used to obfuscate payloads (monitor only by regular users)
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/base64 -F auid>=1000 -F auid!=-1 -k suspicious_encoding
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/base32 -F auid>=1000 -F auid!=-1 -k suspicious_encoding
+
+## Firewall Configuration Changes (Critical Security)
+### NFT (nftables) - Monitor all firewall changes
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/nft -F auid>=1000 -F auid!=-1 -k firewall_changes
+
+## Network Reconnaissance (Optional - may be legitimate troubleshooting)
+### Traceroute - Network mapping
+-a always,exit -F arch=b64 -S execve -F path=/usr/sbin/traceroute -F auid>=1000 -F auid!=-1 -k network_recon
+
+## Monitor dbus-send usage which was exploited in CVE-2021-3560
+-a always,exit -F arch=b64 -S execve -F path=/usr/bin/dbus-send -F auid>=1000 -F auid!=-1 -k dbus_manipulation
+
+## Shell Profile Modifications (Persistence Mechanism)
+### Attackers often modify these files to maintain persistence
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/etc/profile.d/ -F perm=wa -k shell_profiles
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/profile -F perm=wa -k shell_profiles
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/shells -F perm=wa -k shell_profiles
+-a always,exit -F arch=b64 -S openat2,openat,open -F path=/etc/bash.bashrc -F perm=wa -k shell_profiles
+
+## Code Injection Detection (Ptrace)
+### Detect attempts to inject code, data, or modify registers via ptrace
+-a always,exit -F arch=b64 -S ptrace -F a0=0x4 -k code_injection
+-a always,exit -F arch=b64 -S ptrace -F a0=0x5 -k data_injection
+-a always,exit -F arch=b64 -S ptrace -F a0=0x6 -k register_injection
+-a always,exit -F arch=b64 -S ptrace -F a0=0x10 -k ptrace_attach
+-a always,exit -F arch=b64 -S ptrace -F a0=0x4200 -k ptrace_seize
+
+### General ptrace monitoring (may be noisy if debugging tools are used)
+-a always,exit -F arch=b64 -S ptrace -F auid>=1000 -F auid!=-1 -k tracing
+
+## Anonymous File Creation (Fileless Execution)
+### memfd_create allows running executables from memory without touching disk
+### Combined with fexecve, this enables stealthy malware execution
+-a always,exit -F arch=b64 -S memfd_create -F auid>=1000 -F auid!=-1 -k anonymous_file_creation
+-a always,exit -F arch=b64 -S execveat -F a0!=-100 -F auid>=1000 -F auid!=-1 -k fd_execution
+
+## Privilege Abuse Detection (Admin accessing user files)
+### Monitor when root accesses user home directories (potential snooping)
+### Excludes system processes (auid=-1) and automated backups
+### Only triggers when an authenticated admin (auid>=1000) accesses OTHER users' files
+### WARNING: May generate some noise during legitimate admin work - review carefully
+-a always,exit -F arch=b64 -S openat2,openat,open -F dir=/home/ -F uid=0 -F auid>=1000 -F auid!=-1 -C auid!=obj_uid -F success=1 -k admin_user_access
+
+# DELIBERATELY NOT MONITORED (to avoid excessive noise):
+# - Socket creation: Would generate thousands of events per minute
+# - General bash execution: Would flood logs with every command
+# - wget: Used for system updates and legitimate downloads
+# - ssh/scp/sftp: Core functionality of this server
+# - tar/gzip/bzip2/xz/zstd: Normal file compression operations
+
+# Make the audit configuration immutable (requires reboot to modify)
+# WARNING: Once this is enabled, you cannot modify audit rules without rebooting
+# Comment out during testing, enable for production
+-e 2

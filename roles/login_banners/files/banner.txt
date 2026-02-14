@@ -1,0 +1,18 @@
+
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║       UNAUTHORIZED ACCESS TO THIS DEVICE IS PROHIBITED       ║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║ You must have explicit, authorized permission to access or   ║
+║ configure this device.                                       ║
+║                                                              ║
+║ All activities performed on this device are logged and       ║
+║ monitored. Unauthorized access or misuse may result in       ║
+║ disciplinary action and/or legal penalties.                  ║
+║                                                              ║
+║ By proceeding, you acknowledge and consent to these terms.   ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+

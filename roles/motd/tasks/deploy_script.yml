@@ -1,0 +1,24 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Deploy a host-specific dynamic MOTD script.
+# Requires the variable motd_script to be set.
+#
+# Usage via playbook:
+#   ansible-playbook playbooks/motd-deploy.yml --limit wazuh.its.ax -e motd_script=10-custom-wazuh
+
+- name: Validate that motd_script variable is provided
+  ansible.builtin.fail:
+    msg: >-
+      You must specify which MOTD script to deploy.
+      Usage: ansible-playbook playbooks/motd-deploy.yml --limit <host> -e motd_script=<filename>
+      Available templates are in roles/motd/templates/scripts/
+  when: motd_script is not defined
+
+- name: Deploy dynamic MOTD script — {{ motd_script }}
+  ansible.builtin.template:
+    src: "scripts/{{ motd_script }}.j2"
+    dest: "/etc/update-motd.d/{{ motd_script }}"
+    owner: root
+    group: root
+    mode: "0755"
+    trim_blocks: true

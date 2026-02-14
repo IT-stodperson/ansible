@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Remove static MOTD files to keep login output clean
+
+- name: Remove MOTD files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ login_banners_motd_files }}"
+  tags:
+    - login_banners
+    - login_banners_motd

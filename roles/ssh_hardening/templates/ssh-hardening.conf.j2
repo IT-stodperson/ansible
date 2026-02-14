@@ -1,0 +1,88 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   SSH daemon security hardening: cryptography, access control, and logging.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# ============================================================================
+# Host Keys and Cryptography
+# ============================================================================
+
+# A list of supported HostKey algorithms, arranged in order of preference.
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+
+# Explicitly define cryptography algorithms to avoid the use of weak algorithms.
+KexAlgorithms mlkem768x25519-sha256,sntrup761x25519-sha512,sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+
+# ============================================================================
+# Access Control
+# ============================================================================
+
+# Only allow groups 'teachers' and 'ansible' to connect
+AllowGroups teachers ansible
+
+# ============================================================================
+# Security Options
+# ============================================================================
+
+AllowAgentForwarding no
+AllowTcpForwarding no
+Banner /etc/issue.net
+ClientAliveCountMax 3
+ClientAliveInterval 60
+Compression no
+DisableForwarding yes
+IgnoreRhosts yes
+LoginGraceTime 60
+MaxSessions 5
+MaxAuthTries 3
+MaxStartups 10:30:60
+PermitEmptyPasswords no
+PermitRootLogin no
+PermitTunnel no
+PermitUserEnvironment no
+PrintLastLog yes
+PrintMotd no
+StrictModes yes
+TCPKeepAlive no
+UseDNS no
+UsePAM yes
+X11Forwarding no
+
+# ============================================================================
+# Logging
+# ============================================================================
+
+# Logs user's key fingerprint on login.
+LogLevel VERBOSE
+
+# Log sftp level file access (read/write/etc.) that would not be easily logged otherwise.
+Subsystem sftp internal-sftp -f AUTHPRIV -l INFO
+
+# ============================================================================
+# Group-Specific Rules (ORDER MATTERS!)
+# ============================================================================
+
+# Teachers: Full SSH access with public key authentication
+#Match Group teachers
+#    AuthenticationMethods publickey
+#    PubkeyAuthentication yes
+#    PasswordAuthentication no

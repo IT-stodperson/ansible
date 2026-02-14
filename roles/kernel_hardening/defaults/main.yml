@@ -1,0 +1,34 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the kernel_hardening role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# Adjust per server if needed — 100 may be too low for busy services
+nproc_hard_limit: 100
+
+blacklisted_modules:
+  - { name: afs, comment: "Andrew File System" }
+  - { name: atm, comment: "Asynchronous Transfer Mode" }
+  - { name: can, comment: "Controller Area Network" }
+  - { name: ceph, comment: "Ceph filesystem" }
+  - { name: cifs, comment: "Common Internet File System (SMB/CIFS)" }
+  - { name: cramfs, comment: "Compressed ROM filesystem" }
+  - { name: dccp, comment: "Datagram Congestion Control Protocol" }
+  - { name: exfat, comment: "exFAT filesystem" }
+  - { name: freevxfs, comment: "VERITAS File System" }
+  - { name: fscache, comment: "Filesystem caching" }
+  - { name: fuse, comment: "Filesystem in Userspace" }
+  - { name: gfs2, comment: "Global File System 2" }
+  - { name: hfs, comment: "Hierarchical File System (Apple)" }
+  - { name: hfsplus, comment: "HFS Plus (Apple)" }
+  - { name: jffs2, comment: "Journalling Flash File System 2" }
+  - { name: overlayfs, comment: "OverlayFS" }
+  - { name: rds, comment: "Reliable Datagram Sockets" }
+  - { name: sctp, comment: "Stream Control Transmission Protocol" }
+  - { name: squashfs, comment: "SquashFS" }
+  - { name: tipc, comment: "Transparent Inter-Process Communication" }
+  - { name: udf, comment: "Universal Disk Format" }
+  - { name: usb_storage, comment: "USB storage" }
+  - { name: firewire_ohci, comment: "FireWire (IEEE 1394)" }
+  - { name: firewire_core, comment: "FireWire core" }
+  - { name: firewire_sbp2, comment: "FireWire SBP-2" }

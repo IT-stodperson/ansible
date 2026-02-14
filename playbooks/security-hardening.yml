@@ -1,0 +1,10 @@
+---
+- name: Security Hardening Playbook — Debian
+  hosts: debian_servers
+  become: true
+  roles:
+    - role: accounts_hardening
+    - role: apparmor
+    - role: apt_hardening
+    - role: cron_hardening
+    - role: pam_hardening

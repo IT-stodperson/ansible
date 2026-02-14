@@ -1,0 +1,34 @@
+---
+- name: Deploy faillock PAM profile
+  ansible.builtin.template:
+    src: faillock.j2
+    dest: /usr/share/pam-configs/faillock
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Rebuild PAM configuration
+
+- name: Deploy faillock_notify PAM profile
+  ansible.builtin.template:
+    src: faillock_notify.j2
+    dest: /usr/share/pam-configs/faillock_notify
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Rebuild PAM configuration
+
+- name: Deploy faillock configuration
+  ansible.builtin.template:
+    src: faillock.conf.j2
+    dest: /etc/security/faillock.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable faillock PAM profiles
+  ansible.builtin.command:
+    cmd: "pam-auth-update --enable {{ item }}"
+  loop:
+    - faillock
+    - faillock_notify
+  changed_when: false

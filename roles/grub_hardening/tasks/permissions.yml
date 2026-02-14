@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# grub_hardening — file permission lockdown
+
+- name: Ensure grub.cfg has correct ownership and permissions
+  ansible.builtin.file:
+    path: /boot/grub/grub.cfg
+    owner: root
+    group: root
+    mode: "0600"
+    follow: true
