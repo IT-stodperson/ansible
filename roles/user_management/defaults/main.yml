@@ -19,3 +19,8 @@ user_management_users:
     ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDSr05hRFY4rs1U3KW31C1hLrth2UzlVwZKc9Ijsh8Mf tobias"
     comment: Tobias
     shell: /bin/bash
+
+  - name: kjell
+    ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPTmOGO2fdclIYf/Q4J8GDEUn+Ndb51y4s3XnxKFhoqo kjell"
+    comment: Kjell
+    shell: /bin/bash
