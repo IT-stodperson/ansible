@@ -1,6 +1,7 @@
 #SPDX-License-Identifier: MIT-0
 ---
-- hosts: localhost
-  remote_user: root
+- name: Sudo hardening for Debian servers
+  hosts: debian_servers
+  become: true
   roles:
-    - sudo_hardening
+    - role: sudo_hardening

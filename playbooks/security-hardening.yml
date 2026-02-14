@@ -1,10 +1,35 @@
 ---
+# Security Hardening Playbook — Debian
+#
+# Applies all hardening roles to Debian servers in a logical order:
+# bootloader and kernel first, then accounts and authentication,
+# followed by access control, network, and finally monitoring.
+#
+# Usage:
+#   Full run:
+#     ansible-playbook playbooks/security-hardening.yml
+#
+#   Run specific sections via tags:
+#     ansible-playbook playbooks/security-hardening.yml --tags sudo
+#
+#   Dry run:
+#     ansible-playbook playbooks/security-hardening.yml --check --diff
+
 - name: Security Hardening Playbook — Debian
   hosts: debian_servers
   become: true
   roles:
+    - role: grub_hardening
+    - role: kernel_hardening
     - role: accounts_hardening
-    - role: apparmor
-    - role: apt_hardening
-    - role: cron_hardening
     - role: pam_hardening
+    - role: sudo_hardening
+    - role: ssh_hardening
+    - role: cron_hardening
+    - role: apt_hardening
+    - role: apparmor
+    - role: nftables
+    - role: logging_auditing
+    - role: ntp
+    - role: login_banners
+    - role: motd

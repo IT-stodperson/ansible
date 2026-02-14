@@ -1,0 +1,18 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Deploy sudo security hardening configuration.
+
+- name: Ensure sudo is installed
+  ansible.builtin.apt:
+    name: sudo
+    state: present
+
+- name: Deploy sudo security hardening configuration
+  ansible.builtin.template:
+    src: 10_sudo-hardening.j2
+    dest: /etc/sudoers.d/10_sudo-hardening
+    owner: root
+    group: root
+    mode: '0440'
+    trim_blocks: true
+    validate: visudo -c -f %s

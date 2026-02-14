@@ -1,0 +1,29 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Enforce strict file permissions on sudoers files.
+
+- name: Set permissions on /etc/sudoers
+  ansible.builtin.file:
+    path: /etc/sudoers
+    owner: root
+    group: root
+    mode: '0440'
+    follow: true
+
+- name: Find all sudoers.d files
+  ansible.builtin.find:
+    paths: /etc/sudoers.d
+    follow: true
+    patterns: '*'
+  register: sudoers_files
+
+- name: Set permissions on sudoers.d files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: '0440'
+    follow: true
+  loop: "{{ sudoers_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
