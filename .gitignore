@@ -1,0 +1,8 @@
+# SSH private keys
+.ssh/ansible_key
+
+# Vault password file
+.vault_pass
+
+# General safety nets
+*.retry
