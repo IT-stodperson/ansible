@@ -75,19 +75,19 @@ pull  →  edit  →  add  →  commit  →  push
 
 ```bash
 # 1. PULL — always start by getting the latest changes
-git pull
+sudo git pull
 
 # 2. EDIT — make your changes to playbooks, roles, templates, etc.
-vim roles/ssh_hardening/defaults/main.yml   # example
+sudo nano roles/ssh_hardening/defaults/main.yml   # example
 
 # 3. ADD — stage the files you changed
-git add roles/ssh_hardening/defaults/main.yml
+sudo git add roles/ssh_hardening/defaults/main.yml
 
 # 4. COMMIT — describe what you changed and why
-git commit -m "ssh_hardening: disable root login"
+sudo git commit -m "ssh_hardening: disable root login"
 
 # 5. PUSH — send your commit to the remote repository
-git push
+sudo git push -u origin main
 ```
 
 ### Why this order matters
