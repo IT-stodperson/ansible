@@ -12,7 +12,7 @@
     dest: /etc/issue
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
   tags:
     - login_banners
     - login_banners_deploy
@@ -23,7 +23,7 @@
     dest: /etc/issue.net
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
   tags:
     - login_banners
     - login_banners_deploy

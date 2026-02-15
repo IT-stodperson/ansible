@@ -20,9 +20,8 @@ galaxy_info:
         - noble
   galaxy_tags:
     - security
-    - banner
     - hardening
-    - debian
+    - banner
     - motd
-
+    - debian
 dependencies: []

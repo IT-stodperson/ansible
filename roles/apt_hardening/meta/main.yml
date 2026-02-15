@@ -20,7 +20,7 @@ galaxy_info:
         - noble
   galaxy_tags:
     - security
-    - apt
     - hardening
+    - apt
     - debian
 dependencies: []

@@ -1,3 +1,4 @@
+#SPDX-License-Identifier: MIT-0
 ---
 - name: Deploy faillock PAM profile
   ansible.builtin.template:
@@ -5,7 +6,7 @@
     dest: /usr/share/pam-configs/faillock
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
   notify: Rebuild PAM configuration
 
 - name: Deploy faillock_notify PAM profile
@@ -14,7 +15,7 @@
     dest: /usr/share/pam-configs/faillock_notify
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
   notify: Rebuild PAM configuration
 
 - name: Deploy faillock configuration
@@ -23,7 +24,7 @@
     dest: /etc/security/faillock.conf
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
 
 - name: Enable faillock PAM profiles
   ansible.builtin.command:

@@ -8,7 +8,7 @@
     regexp: '^CLASS="--class gnu-linux --class gnu --class os'
     line: 'CLASS="--class gnu-linux --class gnu --class os --unrestricted"'
     backrefs: false
-    mode: "0755"
+    mode: '0755'
   notify: Update GRUB
 
 - name: Deploy GRUB hardening boot parameters
@@ -17,5 +17,5 @@
     dest: /etc/default/grub.d/60-hardening.cfg
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
   notify: Update GRUB

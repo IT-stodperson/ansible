@@ -1,3 +1,4 @@
+#SPDX-License-Identifier: MIT-0
 ---
 - name: Ensure {{ pam_su_group }} group exists
   ansible.builtin.group:
@@ -9,4 +10,4 @@
     path: /etc/pam.d/su
     regexp: '^#?\s*auth\s+required\s+pam_wheel\.so'
     line: "auth required pam_wheel.so use_uid group={{ pam_su_group }}"
-    mode: "0644"
+    mode: '0644'
