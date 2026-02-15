@@ -8,6 +8,6 @@
     dest: /etc/sysctl.d/60-kernel-hardening.conf
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
     trim_blocks: true
   notify: Reload sysctl

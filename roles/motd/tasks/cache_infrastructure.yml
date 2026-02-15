@@ -8,7 +8,7 @@
     dest: /usr/local/bin/update-motd-cache.sh
     owner: root
     group: root
-    mode: "0755"
+    mode: '0755'
     trim_blocks: true
 
 - name: Deploy MOTD update cache service
@@ -17,7 +17,7 @@
     dest: /etc/systemd/system/motd-update-cache.service
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
     trim_blocks: true
   notify: Reload systemd daemon
 
@@ -27,7 +27,7 @@
     dest: /etc/systemd/system/motd-update-cache.timer
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
     trim_blocks: true
   notify:
     - Reload systemd daemon
@@ -39,7 +39,7 @@
     dest: /etc/apt/apt.conf.d/99motd-cache
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
     trim_blocks: true
 
 - name: Ensure MOTD cache timer is enabled and running

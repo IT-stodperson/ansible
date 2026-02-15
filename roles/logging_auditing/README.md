@@ -1,38 +1,104 @@
-Role Name
-=========
+logging_auditing
+================
 
-A brief description of the role goes here.
+Harden logging and auditing on Debian-based servers. This role configures
+journald with persistent storage and security-focused settings, installs
+and configures auditd with host-specific audit rules, and ensures both
+services are enabled and running.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Ansible >= 2.20
+- Target must be a Debian-based system (Debian bookworm/trixie, Ubuntu jammy/noble).
+- The role requires root privileges (`become: true`).
+- Host-specific audit rules templates must be placed in
+  `templates/audit-rules/<inventory_hostname>.rules.j2` for each server.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+This role has no configurable default variables. All configuration is
+managed through templates.
+
+### What the role configures (non-variable)
+
+**Journald** (`/etc/systemd/journald.conf.d/50-security-hardening.conf`):
+- Persistent storage, compression, rate limiting, Forward Secure Sealing
+
+**Auditd** (`/etc/audit/auditd.conf`):
+- Daemon configuration (log format, buffer size, retention)
+
+**Audit rules** (`/etc/audit/rules.d/audit.rules`):
+- Host-specific rules deployed from `templates/audit-rules/<hostname>.rules.j2`
+- If no host-specific template exists, the role skips rule deployment and
+  warns instead
+
+### Post-deployment manual step
+
+After the role runs, you must generate Forward Secure Sealing keys on
+each host:
+
+```bash
+sudo journalctl --setup-keys
+```
+
+Save the verification key in your password manager.
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None.
 
-Example Playbook
-----------------
+Use Cases
+---------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+### 1. Apply all logging and auditing hardening with defaults
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```yaml
+- hosts: debian_servers
+  become: true
+  roles:
+    - logging_auditing
+```
+
+```bash
+ansible-playbook -i inventory site.yml
+```
+
+### 2. Run against a single host
+
+```bash
+ansible-playbook -i inventory site.yml --limit webserver01
+```
+
+### 3. Dry-run (check mode)
+
+Preview changes without modifying the system:
+
+```bash
+ansible-playbook -i inventory site.yml --check --diff
+```
+
+### 4. Use in a larger playbook with other hardening roles
+
+```yaml
+- hosts: debian_servers
+  become: true
+  roles:
+    - kernel_hardening
+    - accounts_hardening
+    - pam_hardening
+    - logging_auditing
+    - ssh_hardening
+```
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Tobias Svenblad / IT-stodperson

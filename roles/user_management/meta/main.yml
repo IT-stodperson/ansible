@@ -19,9 +19,10 @@ galaxy_info:
         - jammy
         - noble
   galaxy_tags:
+    - security
+    - hardening
     - users
     - accounts
     - ssh
     - debian
-
 dependencies: []

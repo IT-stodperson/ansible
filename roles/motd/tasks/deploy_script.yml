@@ -20,5 +20,5 @@
     dest: "/etc/update-motd.d/{{ motd_script }}"
     owner: root
     group: root
-    mode: "0755"
+    mode: '0755'
     trim_blocks: true

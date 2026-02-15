@@ -8,7 +8,7 @@
     dest: /etc/profile.d/60-security-hardening.sh
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
   tags:
     - accounts
     - accounts_shell

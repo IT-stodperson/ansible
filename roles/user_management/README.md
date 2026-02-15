@@ -66,6 +66,7 @@ Use Cases
   roles:
     - user_management
 ```
+
 ```bash
 ansible-playbook -i inventory site.yml
 ```
@@ -114,6 +115,7 @@ ansible-playbook -i inventory site.yml \
 ### 6. Dry-run (check mode)
 
 Preview changes without modifying the system:
+
 ```bash
 ansible-playbook -i inventory site.yml --check --diff
 ```

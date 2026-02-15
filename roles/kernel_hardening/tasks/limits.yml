@@ -8,5 +8,5 @@
     dest: /etc/security/limits.d/10-coredump-debian.conf
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
     trim_blocks: true

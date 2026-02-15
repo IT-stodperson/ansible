@@ -1,3 +1,4 @@
+#SPDX-License-Identifier: MIT-0
 ---
 - name: Install libpam-pwquality
   ansible.builtin.apt:
@@ -12,7 +13,7 @@
     dest: /etc/security/pwquality.conf
     owner: root
     group: root
-    mode: "0644"
+    mode: '0644'
   notify: Rebuild PAM configuration
 
 - name: Enable pwquality PAM profile

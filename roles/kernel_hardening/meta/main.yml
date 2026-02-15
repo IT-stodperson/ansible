@@ -20,8 +20,8 @@ galaxy_info:
         - noble
   galaxy_tags:
     - security
-    - kernel
     - hardening
-    - debian
+    - kernel
     - sysctl
+    - debian
 dependencies: []

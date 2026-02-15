@@ -1,38 +1,125 @@
-Role Name
-=========
+ssh_hardening
+=============
 
-A brief description of the role goes here.
+Harden SSH on Debian-based servers. This role filters weak
+Diffie-Hellman moduli, deploys a secure `sshd_config` drop-in with
+hardened cipher/KEX/MAC settings, and enforces strict file permissions
+on SSH configuration files and host keys.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Ansible >= 2.20
+- Target must be a Debian-based system (Debian bookworm/trixie, Ubuntu jammy/noble).
+- The role requires root privileges (`become: true`).
+- An `ansible` user and group must exist on the target (the role
+  creates them if missing).
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+All variables are defined in `defaults/main.yml` and can be overridden.
+
+### Diffie-Hellman moduli
+
+| Variable | Default | Description |
+|---|---|---|
+| `ssh_moduli_min_bits` | `3071` | Minimum bit size for DH moduli. Entries below this threshold are removed from `/etc/ssh/moduli`. |
+
+### What the role configures (non-variable, hardcoded in template)
+
+**SSH configuration** (`/etc/ssh/sshd_config.d/ssh-hardening.conf`):
+- Hardened cipher, KEX, and MAC algorithm selection
+- Root login restrictions, authentication settings
+- Banner, idle timeout, and session limits
+
+**File permissions**:
+- `/etc/ssh/sshd_config` — `root:root 0600`
+- `/etc/ssh/sshd_config.d/*.conf` — `root:root 0600`
+- SSH private host keys — `root:root 0600`
+- SSH public host keys — `root:root 0644`
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None.
 
-Example Playbook
-----------------
+Use Cases
+---------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+### 1. Apply all SSH hardening with defaults
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```yaml
+- hosts: debian_servers
+  become: true
+  roles:
+    - ssh_hardening
+```
+
+```bash
+ansible-playbook -i inventory site.yml
+```
+
+### 2. Adjust minimum DH moduli bit size
+
+```yaml
+- hosts: debian_servers
+  become: true
+  roles:
+    - role: ssh_hardening
+      ssh_moduli_min_bits: 4095
+```
+
+### 3. Run against a single host
+
+```bash
+ansible-playbook -i inventory site.yml --limit webserver01
+```
+
+### 4. Override variables from the command line
+
+```bash
+ansible-playbook -i inventory site.yml \
+  -e ssh_moduli_min_bits=4095
+```
+
+### 5. Dry-run (check mode)
+
+Preview changes without modifying the system:
+
+```bash
+ansible-playbook -i inventory site.yml --check --diff
+```
+
+### 6. Use in a larger playbook with other hardening roles
+
+```yaml
+- hosts: debian_servers
+  become: true
+  roles:
+    - accounts_hardening
+    - pam_hardening
+    - sudo_hardening
+    - ssh_hardening
+    - logging_auditing
+```
+
+### 7. Set variables per environment in group_vars
+
+```yaml
+# group_vars/production.yml
+ssh_moduli_min_bits: 4095
+
+# group_vars/development.yml
+ssh_moduli_min_bits: 3071
+```
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Tobias Svenblad / IT-stodperson
