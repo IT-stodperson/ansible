@@ -20,16 +20,30 @@
   become: true
   roles:
     - role: grub_hardening
+      tags: grub
     - role: kernel_hardening
+      tags: kernel
     - role: accounts_hardening
+      tags: accounts
     - role: pam_hardening
+      tags: pam
     - role: sudo_hardening
+      tags: sudo
     - role: ssh_hardening
+      tags: ssh
     - role: cron_hardening
+      tags: cron
     - role: apt_hardening
+      tags: apt
     - role: apparmor
+      tags: apparmor
     - role: nftables
+      tags: nftables
     - role: logging_auditing
+      tags: logging
     - role: ntp
+      tags: ntp
     - role: login_banners
+      tags: login_banners
     - role: motd
+      tags: motd
