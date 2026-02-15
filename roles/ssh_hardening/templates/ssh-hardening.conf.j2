@@ -82,7 +82,7 @@ Subsystem sftp internal-sftp -f AUTHPRIV -l INFO
 # ============================================================================
 
 # Teachers: Full SSH access with public key authentication
-#Match Group teachers
-#    AuthenticationMethods publickey
-#    PubkeyAuthentication yes
-#    PasswordAuthentication no
+Match Group teachers
+    AuthenticationMethods publickey
+    PubkeyAuthentication yes
+    PasswordAuthentication no
