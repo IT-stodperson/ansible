@@ -6,6 +6,15 @@
 # Adjust per server if needed — 100 may be too low for busy services
 nproc_hard_limit: 100
 
+# Compiler binaries to restrict to root-only (mode 0700)
+# Lynis HRDN-7222 — prevents unprivileged users from compiling code
+compiler_binaries:
+  - /usr/bin/as
+  - /usr/bin/cc
+  - /usr/bin/gcc
+  - /usr/bin/g++
+  - /usr/bin/make
+
 blacklisted_modules:
   - { name: afs, comment: "Andrew File System" }
   - { name: atm, comment: "Asynchronous Transfer Mode" }

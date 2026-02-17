@@ -23,3 +23,9 @@
   tags:
     - kernel
     - kernel_limits
+
+- name: Restrict compiler access
+  ansible.builtin.import_tasks: compilers.yml
+  tags:
+    - kernel
+    - kernel_compilers

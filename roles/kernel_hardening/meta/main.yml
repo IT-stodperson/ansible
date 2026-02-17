@@ -4,7 +4,8 @@ galaxy_info:
   author: Tobias Svenblad
   description: >-
     Kernel hardening for Debian servers — module blacklisting, sysctl
-    security parameters, and process/core dump limits.
+    security parameters, process/core dump limits, and compiler access
+    restriction.
   company: IT-stödperson
   issue_tracker_url: https://github.com/IT-stodperson/ansible/issues
   license: MIT

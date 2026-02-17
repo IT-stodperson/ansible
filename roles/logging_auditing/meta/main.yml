@@ -4,7 +4,8 @@ galaxy_info:
   author: Tobias Svenblad
   description: >-
     Logging and auditing for Debian servers — journald hardening,
-    auditd configuration, and host-specific audit rules.
+    auditd configuration, host-specific audit rules, process accounting,
+    and sysstat data collection.
   company: IT-stödperson
   issue_tracker_url: https://github.com/IT-stodperson/ansible/issues
   license: MIT
