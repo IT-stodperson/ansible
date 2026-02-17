@@ -85,12 +85,60 @@
   when: not (audit_rules_template.stat.exists | bool)
 
 # ===========================================================================
+# PROCESS ACCOUNTING (ACCT-9622)
+# ===========================================================================
+# Lynis ACCT-9622: Enable process accounting so the kernel logs every
+# process execution to /var/log/account/pacct.
+
+- name: Install acct (process accounting)
+  ansible.builtin.apt:
+    name: acct
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+# ===========================================================================
+# SYSSTAT ACCOUNTING (ACCT-9626)
+# ===========================================================================
+# Lynis ACCT-9626: Enable sysstat to collect system activity data
+# (CPU, memory, disk I/O, network) via periodic sar snapshots.
+
+- name: Install sysstat
+  ansible.builtin.apt:
+    name: sysstat
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Enable sysstat data collection
+  ansible.builtin.lineinfile:
+    path: /etc/default/sysstat
+    regexp: '^ENABLED='
+    line: 'ENABLED="true"'
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart sysstat
+
+# ===========================================================================
 # ENABLE SERVICES
 # ===========================================================================
 
 - name: Ensure auditd is enabled and running
   ansible.builtin.systemd:
     name: auditd
+    enabled: true
+    state: started
+
+- name: Ensure acct is enabled and running
+  ansible.builtin.systemd:
+    name: acct
+    enabled: true
+    state: started
+
+- name: Ensure sysstat is enabled and running
+  ansible.builtin.systemd:
+    name: sysstat
     enabled: true
     state: started
 

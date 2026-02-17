@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT-0
+---
+# kernel_hardening — compiler access restriction (HRDN-7222)
+#
+# Lynis HRDN-7222: Restrict compiler executables so only root can run them.
+# This prevents unprivileged users from compiling exploit code on the system.
+
+- name: Find compiler binaries
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: "{{ compiler_binaries }}"
+  register: compiler_stat_results
+
+- name: Restrict compiler permissions to root only
+  ansible.builtin.file:
+    path: "{{ item.stat.path }}"
+    mode: '0700'
+  loop: "{{ compiler_stat_results.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.stat.exists
