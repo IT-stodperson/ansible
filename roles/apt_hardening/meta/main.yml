@@ -4,7 +4,9 @@ galaxy_info:
   author: Tobias Svenblad
   description: >-
     APT hardening for Debian servers — disable weak dependencies,
-    restrict file permissions on keyrings, sources, and auth configs.
+    restrict file permissions on keyrings, sources, and auth configs,
+    install package integrity tools (debsums, apt-show-versions),
+    and configure unattended security upgrades.
   company: IT-stödperson
   issue_tracker_url: https://github.com/IT-stodperson/ansible/issues
   license: MIT

@@ -1,0 +1,62 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Configure unattended-upgrades to automatically apply security updates.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@gymnasium.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+// Repositories eligible for automatic upgrades.
+Unattended-Upgrade::Origins-Pattern {
+{% for origin in apt_unattended_upgrades_origins %}
+    "{{ origin }}";
+{% endfor %}
+};
+
+// Packages to exclude from automatic upgrades (regex supported).
+Unattended-Upgrade::Package-Blacklist {
+{% for pkg in apt_unattended_upgrades_blacklist %}
+    "{{ pkg }}";
+{% endfor %}
+};
+
+// Automatically fix interrupted dpkg runs.
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+
+// Split upgrades into minimal steps so that the system remains usable
+// even if the upgrade is interrupted (e.g. by a power failure).
+Unattended-Upgrade::MinimalSteps "true";
+
+{% if apt_unattended_upgrades_mail %}
+// Email notifications.
+Unattended-Upgrade::Mail "{{ apt_unattended_upgrades_mail }}";
+Unattended-Upgrade::MailReport "{{ apt_unattended_upgrades_mail_report }}";
+{% endif %}
+
+// Automatic cleanup of unused packages.
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "{{ apt_unattended_upgrades_remove_unused_kernel | lower }}";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "{{ apt_unattended_upgrades_remove_new_unused_deps | lower }}";
+Unattended-Upgrade::Remove-Unused-Dependencies "{{ apt_unattended_upgrades_remove_unused_deps | lower }}";
+
+// Automatic reboot configuration.
+Unattended-Upgrade::Automatic-Reboot "{{ apt_unattended_upgrades_auto_reboot | lower }}";
+{% if apt_unattended_upgrades_auto_reboot %}
+Unattended-Upgrade::Automatic-Reboot-Time "{{ apt_unattended_upgrades_auto_reboot_time }}";
+{% endif %}
+
+// Logging.
+Unattended-Upgrade::SyslogEnable "{{ apt_unattended_upgrades_syslog_enabled | lower }}";
+Unattended-Upgrade::SyslogFacility "{{ apt_unattended_upgrades_syslog_facility }}";
