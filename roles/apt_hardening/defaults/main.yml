@@ -11,6 +11,51 @@ apt_install_suggests: "0"
 apt_acquire_languages: "none"
 
 # ---------------------------------------------------------------------------
+# Package integrity and patch management
+# ---------------------------------------------------------------------------
+apt_install_debsums: true
+apt_install_apt_show_versions: true
+
+# ---------------------------------------------------------------------------
+# Unattended upgrades (automatic security updates)
+# ---------------------------------------------------------------------------
+apt_unattended_upgrades_enabled: true
+
+# Origins-Pattern entries — controls which repositories are eligible for
+# automatic upgrades.  The defaults cover Debian security and stable updates.
+# Override with Ubuntu patterns when targeting Ubuntu hosts.
+apt_unattended_upgrades_origins:
+  - "origin=Debian,codename=${distro_codename},label=Debian"
+  - "origin=Debian,codename=${distro_codename},label=Debian-Security"
+  - "origin=Debian,codename=${distro_codename}-security,label=Debian-Security"
+
+# Packages to exclude from automatic upgrades (regex supported).
+apt_unattended_upgrades_blacklist: []
+
+# Mail notifications — leave empty to disable.
+apt_unattended_upgrades_mail: ""
+apt_unattended_upgrades_mail_report: "on-change"
+
+# Automatic cleanup
+apt_unattended_upgrades_remove_unused_kernel: true
+apt_unattended_upgrades_remove_new_unused_deps: true
+apt_unattended_upgrades_remove_unused_deps: true
+
+# Automatic reboot — disabled by default for safety.
+apt_unattended_upgrades_auto_reboot: false
+apt_unattended_upgrades_auto_reboot_time: "02:00"
+
+# Logging
+apt_unattended_upgrades_syslog_enabled: true
+apt_unattended_upgrades_syslog_facility: "daemon"
+
+# APT::Periodic intervals (in days, 0 = disabled)
+apt_periodic_update_package_lists: 1
+apt_periodic_download_upgradeable: 1
+apt_periodic_unattended_upgrade: 1
+apt_periodic_autoclean_interval: 7
+
+# ---------------------------------------------------------------------------
 # Directory permissions
 # ---------------------------------------------------------------------------
 apt_directories:

@@ -1,0 +1,26 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Configure APT periodic tasks — package list updates, downloads,
+#   unattended upgrades, and cache cleanup.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@gymnasium.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+APT::Periodic::Update-Package-Lists "{{ apt_periodic_update_package_lists }}";
+APT::Periodic::Download-Upgradeable-Packages "{{ apt_periodic_download_upgradeable }}";
+APT::Periodic::Unattended-Upgrade "{{ apt_periodic_unattended_upgrade }}";
+APT::Periodic::AutocleanInterval "{{ apt_periodic_autoclean_interval }}";

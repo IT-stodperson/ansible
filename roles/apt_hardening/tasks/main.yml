@@ -6,6 +6,12 @@
 # APT Hardening — Main task entry point
 # =============================================================================
 
+- name: Install APT hardening packages
+  ansible.builtin.import_tasks: packages.yml
+  tags:
+    - apt
+    - apt_packages
+
 - name: Harden APT configuration
   ansible.builtin.import_tasks: configuration.yml
   tags:
