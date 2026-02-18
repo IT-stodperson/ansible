@@ -1,0 +1,92 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Discover which services from the hardening list are installed, then
+# deploy matching override.conf drop-ins for each one.
+
+# ===========================================================================
+# DISCOVER INSTALLED SERVICES
+# ===========================================================================
+
+- name: Check which hardening target services are installed
+  ansible.builtin.command:
+    cmd: "systemctl show {{ item }}.service --property=LoadState --value"
+  register: _systemd_unit_states
+  loop: "{{ systemd_hardening_services }}"
+  changed_when: false
+  failed_when: false
+
+- name: Build list of installed services
+  ansible.builtin.set_fact:
+    _installed_services: >-
+      {{ _systemd_unit_states.results
+         | selectattr('stdout', 'eq', 'loaded')
+         | map(attribute='item')
+         | list }}
+
+# ===========================================================================
+# CHECK FOR MATCHING TEMPLATES
+# ===========================================================================
+
+- name: Check which override templates are available
+  ansible.builtin.stat:
+    path: "{{ role_path }}/templates/overrides/{{ item }}.conf.j2"
+  delegate_to: localhost
+  become: false
+  register: _override_templates
+  loop: "{{ _installed_services }}"
+
+- name: Build list of services to harden
+  ansible.builtin.set_fact:
+    _services_to_harden: >-
+      {{ _override_templates.results
+         | selectattr('stat.exists')
+         | map(attribute='item')
+         | list }}
+
+# ===========================================================================
+# DEPLOY OVERRIDES
+# ===========================================================================
+
+- name: Create systemd override directories
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item }}.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ _services_to_harden }}"
+
+- name: Deploy service hardening overrides
+  ansible.builtin.template:
+    src: "overrides/{{ item }}.conf.j2"
+    dest: "/etc/systemd/system/{{ item }}.service.d/override.conf"
+    owner: root
+    group: root
+    mode: '0644'
+    trim_blocks: true
+  loop: "{{ _services_to_harden }}"
+  notify: Reload systemd daemon
+
+# ===========================================================================
+# REPORTING
+# ===========================================================================
+
+- name: Report services that were hardened
+  ansible.builtin.debug:
+    msg: "Deployed hardening override for {{ _services_to_harden | join(', ') }}"
+  when: _services_to_harden | length > 0
+
+- name: Report installed services without templates
+  ansible.builtin.debug:
+    msg: >-
+      Service {{ item }} is installed but no override template exists at
+      templates/overrides/{{ item }}.conf.j2 — skipping.
+  loop: "{{ _installed_services | difference(_services_to_harden) }}"
+
+- name: Remind about service restart
+  ansible.builtin.debug:
+    msg: >-
+      IMPORTANT: Hardening overrides have been deployed but services have
+      not been restarted. Reboot the host or restart individual services
+      to apply the new restrictions.
+  when: _services_to_harden | length > 0

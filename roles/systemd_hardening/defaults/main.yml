@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the systemd_hardening role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# ---------------------------------------------------------------------------
+# Services to harden
+# ---------------------------------------------------------------------------
+# List of systemd service names (without the .service suffix).
+# For each entry the role checks:
+#   1. Is the unit installed on the target host?
+#   2. Does a matching template exist at templates/overrides/<name>.conf.j2?
+# Only services that pass both checks receive an override.
+#
+# To add a new service: create its template and append its name here.
+systemd_hardening_services:
+  - auditd
+  - cron
+  - ssh
+  - systemd-journald
+  - systemd-timesyncd

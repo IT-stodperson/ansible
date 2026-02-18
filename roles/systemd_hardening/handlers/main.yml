@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for systemd_hardening
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true

@@ -1,0 +1,54 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Systemd hardening override for auditd — restrict capabilities,
+#   network access, and kernel interfaces.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@gymnasium.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+[Service]
+# Audit subsystem control/read/write, DAC bypass for event enrichment,
+# priority and OOM score adjustment
+CapabilityBoundingSet=CAP_AUDIT_CONTROL CAP_AUDIT_READ CAP_AUDIT_WRITE CAP_DAC_READ_SEARCH CAP_SYS_NICE CAP_SYS_RESOURCE
+
+# NETLINK_AUDIT for kernel socket, AF_UNIX for internal glibc/NSS/enrichment use
+# Note: if au-remote plugin is ever enabled, add AF_INET here
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+
+# No IP traffic needed — revisit only if au-remote plugin is enabled
+IPAddressDeny=any
+
+# auditd does not create namespaces (container ID registration is orchestrator's job)
+RestrictNamespaces=yes
+
+NoNewPrivileges=yes
+ProtectProc=invisible
+ProcSubset=pid
+ProtectHome=yes
+ProtectHostname=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectKernelLogs=yes
+ProtectKernelTunables=yes
+PrivateDevices=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# 0077 is safe — Wazuh uses file-based collection (/var/log/audit/audit.log)
+# not the af_unix socket. Revisit if af_unix plugin is ever enabled.
+UMask=0077

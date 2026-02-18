@@ -1,0 +1,39 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Systemd hardening override for systemd-timesyncd — supplement the
+#   upstream unit's existing hardening with additional restrictions.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@gymnasium.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+[Service]
+# The stock timesyncd.service (systemd 252+) already includes extensive
+# hardening: CapabilityBoundingSet=CAP_SYS_TIME, PrivateTmp, PrivateDevices,
+# ProtectHome, ProtectControlGroups, ProtectHostname, ProtectKernelLogs,
+# ProtectKernelModules, ProtectKernelTunables, ProtectSystem=strict,
+# RestrictAddressFamilies, RestrictNamespaces, RestrictRealtime,
+# RestrictSUIDSGID, NoNewPrivileges, LockPersonality,
+# MemoryDenyWriteExecute, SystemCallArchitectures=native.
+#
+# This override adds directives not present in the stock unit.
+
+# timesyncd does not need to enumerate other processes
+ProtectProc=invisible
+ProcSubset=pid
+
+# Restrict file creation permissions
+UMask=0077

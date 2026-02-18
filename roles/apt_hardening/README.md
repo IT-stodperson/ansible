@@ -34,6 +34,7 @@ All variables are defined in `defaults/main.yml` and can be overridden.
 |---|---|---|
 | `apt_install_debsums` | `true` | Install `debsums` for verifying installed package file integrity |
 | `apt_install_apt_show_versions` | `true` | Install `apt-show-versions` for patch management reporting |
+| `apt_debsums_cron_check` | `"daily"` | Debsums cron frequency: `daily`, `weekly`, `monthly`, or `never` (Lynis PKGS-7370) |
 
 ### Unattended upgrades
 
