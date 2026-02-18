@@ -1,0 +1,13 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for systemd_hardening
+
+# =============================================================================
+# Systemd Service Hardening — Main task entry point
+# =============================================================================
+
+- name: Discover installed services and apply hardening overrides
+  ansible.builtin.import_tasks: apply_overrides.yml
+  tags:
+    - systemd
+    - systemd_overrides

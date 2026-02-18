@@ -1,0 +1,27 @@
+#SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  author: Tobias Svenblad
+  description: >-
+    Systemd service hardening for Debian servers — deploy drop-in
+    override.conf files that restrict capabilities, address families,
+    namespace access, and kernel interfaces for installed services.
+  company: IT-stödperson
+  issue_tracker_url: https://github.com/IT-stodperson/ansible/issues
+  license: MIT
+  min_ansible_version: 2.20
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - security
+    - hardening
+    - systemd
+    - debian
+dependencies: []
