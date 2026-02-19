@@ -31,3 +31,16 @@ grub_cmdline_linux_hardening:
   - audit=1
   - audit_backlog_limit=8192
   - usbcore.nousb
+  - slab_nomerge
+  - init_on_alloc=1
+  - init_on_free=1
+  - slub_debug=ZF
+  - page_alloc.shuffle=1
+  - randomize_kstack_offset=on
+  - pti=on
+  - mitigations=auto,nosmt
+  - vsyscall=none
+  - debugfs=off
+  - oops=panic
+  - kfence.sample_interval=100
+  - loglevel=0
