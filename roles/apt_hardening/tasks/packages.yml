@@ -27,6 +27,12 @@
     state: present
   when: apt_install_apt_show_versions
 
+- name: Install apt-transport-https for HTTPS repository support
+  ansible.builtin.apt:
+    name: apt-transport-https
+    state: present
+  when: apt_install_apt_transport_https
+
 # ===========================================================================
 # UNATTENDED UPGRADES
 # ===========================================================================
