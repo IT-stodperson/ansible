@@ -24,6 +24,9 @@
     - grub
     - grub_permissions
 
+- name: Flush handlers to regenerate grub.cfg before verification
+  ansible.builtin.meta: flush_handlers
+
 - name: Verify GRUB hardening
   ansible.builtin.import_tasks: verify.yml
   tags:
