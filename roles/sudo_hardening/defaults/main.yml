@@ -30,6 +30,9 @@ sudo_iolog_dir: /var/log/sudo-io
 # Security
 # ---------------------------------------------------------------------------
 
+# Restrict umask
+sudo_umask: 0077
+
 # Restrict PATH to prevent execution of malicious binaries
 sudo_secure_path: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
