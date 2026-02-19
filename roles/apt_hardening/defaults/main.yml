@@ -15,6 +15,7 @@ apt_acquire_languages: "none"
 # ---------------------------------------------------------------------------
 apt_install_debsums: true
 apt_install_apt_show_versions: true
+apt_install_apt_transport_https: true
 
 # debsums cron frequency — "daily", "weekly", "monthly", or "never".
 # Lynis PKGS-7370 requires a cron job to be configured.
