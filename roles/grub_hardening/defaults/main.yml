@@ -44,3 +44,4 @@ grub_cmdline_linux_hardening:
   - oops=panic
   - kfence.sample_interval=100
   - loglevel=0
+  - rng_core.default_quality=500
