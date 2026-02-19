@@ -54,10 +54,13 @@ Defaults iolog_dir="{{ sudo_iolog_dir }}"
 # ============================================================================
 
 # Force pseudo-terminal allocation to prevent certain attacks
-Defaults use_pty
+Defaults use_pty,requiretty
+
+# Forces umask to a more restrictive mask
+Defaults umask="{{ sudo_umask }}"
 
 # Restrict PATH to prevent malicious binaries from being executed
-Defaults secure_path="{{ sudo_secure_path }}"
+Defaults ignore_dot,secure_path="{{ sudo_secure_path }}"
 
 # ============================================================================
 # Password Policy
