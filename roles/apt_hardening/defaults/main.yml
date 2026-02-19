@@ -45,8 +45,9 @@ apt_unattended_upgrades_remove_unused_kernel: true
 apt_unattended_upgrades_remove_new_unused_deps: true
 apt_unattended_upgrades_remove_unused_deps: true
 
-# Automatic reboot — disabled by default for safety.
-apt_unattended_upgrades_auto_reboot: false
+# Automatic reboot
+apt_unattended_upgrades_auto_reboot: true
+apt_unattended_upgrades_auto_reboot_with_users: true
 apt_unattended_upgrades_auto_reboot_time: "02:00"
 
 # Logging
