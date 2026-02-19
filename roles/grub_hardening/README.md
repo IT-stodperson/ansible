@@ -4,8 +4,9 @@ grub_hardening
 Harden GRUB on Debian-based servers. This role sets a GRUB superuser
 password (PBKDF2), adds `--unrestricted` to normal boot entries so
 regular booting is unaffected, deploys hardened kernel command-line
-parameters (AppArmor, audit, USB restrictions), and locks down
-`grub.cfg` file permissions.
+parameters (AppArmor, audit, USB restrictions, memory allocator
+hardening, CPU mitigations, kernel attack surface reduction), and
+locks down `grub.cfg` file permissions.
 
 Requirements
 ------------
@@ -34,7 +35,25 @@ All variables are defined in `defaults/main.yml` and can be overridden.
 
 | Variable | Default | Description |
 |---|---|---|
-| `grub_cmdline_linux_hardening` | `[apparmor=1, security=apparmor, audit=1, audit_backlog_limit=8192, usbcore.nousb]` | Parameters appended to `GRUB_CMDLINE_LINUX` |
+| `grub_cmdline_linux_hardening` | See `defaults/main.yml` | Parameters appended to `GRUB_CMDLINE_LINUX` |
+
+Default boot parameters include:
+
+- `apparmor=1 security=apparmor` — enable AppArmor MAC
+- `audit=1 audit_backlog_limit=8192` — enable kernel audit subsystem
+- `usbcore.nousb` — disable USB at boot
+- `slab_nomerge` — prevent slab merging (hardens heap isolation)
+- `init_on_alloc=1 init_on_free=1` — zero memory on alloc/free
+- `slub_debug=ZF` — enable red-zoning and sanity checks on SLUB
+- `page_alloc.shuffle=1` — randomize page allocator free lists
+- `randomize_kstack_offset=on` — randomize kernel stack offset per syscall
+- `pti=on` — force page table isolation (Meltdown mitigation)
+- `mitigations=auto,nosmt` — enable CPU mitigations, disable SMT
+- `vsyscall=none` — disable legacy vsyscall interface
+- `debugfs=off` — disable debugfs mount
+- `oops=panic` — panic on kernel oops (prevent exploitation of corrupted state)
+- `kfence.sample_interval=100` — enable KFENCE sampling for heap bug detection
+- `loglevel=0` — suppress kernel log messages at boot
 
 ### Required vault / host variables
 
@@ -158,12 +177,7 @@ ansible-playbook -i inventory site.yml --check --diff
 ```yaml
 # group_vars/production.yml
 grub_pbkdf2_iterations: 1000000
-grub_cmdline_linux_hardening:
-  - apparmor=1
-  - security=apparmor
-  - audit=1
-  - audit_backlog_limit=8192
-  - usbcore.nousb
+# Uses all defaults from the role (full hardening)
 
 # group_vars/development.yml
 grub_pbkdf2_iterations: 300000
