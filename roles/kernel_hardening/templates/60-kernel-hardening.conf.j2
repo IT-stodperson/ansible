@@ -38,6 +38,18 @@ kernel.kptr_restrict = 2
 # Enable full ASLR (Address Space Layout Randomization)
 kernel.randomize_va_space = 2
 
+# Panic on kernel oops (prevent continued operation after corruption)
+kernel.panic_on_oops = 1
+
+# Limit CPU time percentage available for perf events
+kernel.perf_cpu_time_max_percent = 1
+
+# Limit maximum sample rate for perf events
+kernel.perf_event_max_sample_rate = 1
+
+# Restrict perf events to root only
+kernel.perf_event_paranoid = 2
+
 # Disable SysRq key (emergency recovery commands)
 kernel.sysrq = 0
 
@@ -128,6 +140,7 @@ net.ipv4.conf.all.accept_redirects = 0
 net.ipv4.conf.all.secure_redirects = 0
 net.ipv4.conf.all.send_redirects = 0
 net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.default.secure_redirects = 0
 net.ipv4.conf.default.send_redirects = 0
 net.ipv6.conf.all.accept_redirects = 0
 net.ipv6.conf.default.accept_redirects = 0
@@ -145,3 +158,26 @@ net.ipv6.conf.default.accept_source_route = 0
 # Enable reverse path filtering (anti-spoofing)
 net.ipv4.conf.all.rp_filter = 1
 net.ipv4.conf.default.rp_filter = 1
+
+# ==============================================================================
+# NETWORK - ARP & INTERFACE HARDENING
+# ==============================================================================
+
+# Reject packets with local source addresses from the wire
+net.ipv4.conf.all.accept_local = 0
+
+# Enable ARP filtering (respond only on matching interface)
+net.ipv4.conf.all.arp_filter = 1
+
+# Ignore ARP requests if the source address is not in the ARP table
+net.ipv4.conf.all.arp_ignore = 2
+
+# Drop gratuitous ARP frames (prevents ARP cache poisoning)
+net.ipv4.conf.all.drop_gratuitous_arp = 1
+
+# Disable routing of local network traffic on external interfaces
+net.ipv4.conf.all.route_localnet = 0
+
+# Disable shared media detection on all interfaces
+net.ipv4.conf.all.shared_media = 0
+net.ipv4.conf.default.shared_media = 0
