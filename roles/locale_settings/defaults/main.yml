@@ -1,0 +1,33 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the locale_settings role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# ---------------------------------------------------------------------------
+# Locale generation
+# ---------------------------------------------------------------------------
+# List of locales to generate via locale-gen.
+# Each entry must match a line in /etc/locale.gen (e.g. "en_US.UTF-8").
+locale_generate:
+  - en_US.UTF-8
+  - sv_FI.UTF-8
+
+# ---------------------------------------------------------------------------
+# System default locale (/etc/default/locale via update-locale)
+# ---------------------------------------------------------------------------
+# LANG — the fallback for any LC_* variable not explicitly set.
+locale_lang: en_US.UTF-8
+
+# Per-category overrides.  Set a key to "" (empty string) to omit it from
+# update-locale and let it fall back to LANG.
+locale_lc_address: sv_FI.UTF-8
+locale_lc_collate: sv_FI.UTF-8
+locale_lc_ctype: sv_FI.UTF-8
+locale_lc_identification: sv_FI.UTF-8
+locale_lc_measurement: sv_FI.UTF-8
+locale_lc_monetary: sv_FI.UTF-8
+locale_lc_name: sv_FI.UTF-8
+locale_lc_numeric: sv_FI.UTF-8
+locale_lc_paper: sv_FI.UTF-8
+locale_lc_telephone: sv_FI.UTF-8
+locale_lc_time: sv_FI.UTF-8

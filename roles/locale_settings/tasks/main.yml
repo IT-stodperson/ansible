@@ -1,0 +1,71 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Configure system locale via update-locale.
+#
+# This role:
+#   1. Ensures the "locales" package is installed.
+#   2. Generates every locale listed in locale_generate.
+#   3. Sets the system default locale with update-locale (writes /etc/default/locale).
+
+# =============================================================================
+# 1. Ensure the locales package is present
+# =============================================================================
+
+- name: Install locales package
+  ansible.builtin.apt:
+    name: locales
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+# =============================================================================
+# 2. Generate required locales
+# =============================================================================
+
+- name: Generate required locales
+  community.general.locale_gen:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ locale_generate }}"
+
+# =============================================================================
+# 3. Build the update-locale argument list and apply
+# =============================================================================
+
+- name: Build locale variable list
+  ansible.builtin.set_fact:
+    _locale_vars: >-
+      {{
+        (['LANG=' + locale_lang])
+        + (locale_lc_address     | ternary(['LC_ADDRESS='     + locale_lc_address],     []))
+        + (locale_lc_collate     | ternary(['LC_COLLATE='     + locale_lc_collate],     []))
+        + (locale_lc_ctype       | ternary(['LC_CTYPE='       + locale_lc_ctype],       []))
+        + (locale_lc_identification | ternary(['LC_IDENTIFICATION=' + locale_lc_identification], []))
+        + (locale_lc_measurement | ternary(['LC_MEASUREMENT=' + locale_lc_measurement], []))
+        + (locale_lc_monetary    | ternary(['LC_MONETARY='    + locale_lc_monetary],    []))
+        + (locale_lc_name        | ternary(['LC_NAME='        + locale_lc_name],        []))
+        + (locale_lc_numeric     | ternary(['LC_NUMERIC='     + locale_lc_numeric],     []))
+        + (locale_lc_paper       | ternary(['LC_PAPER='       + locale_lc_paper],       []))
+        + (locale_lc_telephone   | ternary(['LC_TELEPHONE='   + locale_lc_telephone],   []))
+        + (locale_lc_time        | ternary(['LC_TIME='        + locale_lc_time],        []))
+      }}
+
+- name: Read current /etc/default/locale
+  ansible.builtin.slurp:
+    src: /etc/default/locale
+  register: _current_locale_file
+  failed_when: false
+
+- name: Set current locale content fact
+  ansible.builtin.set_fact:
+    _current_locale_content: "{{ (_current_locale_file.content | default('') | b64decode).strip() }}"
+
+- name: Build expected locale file content
+  ansible.builtin.set_fact:
+    _expected_locale_content: "{{ _locale_vars | join('\n') }}"
+
+- name: Set system default locale via update-locale
+  ansible.builtin.command:
+    cmd: "update-locale --reset {{ _locale_vars | join(' ') }}"
+  when: _current_locale_content != _expected_locale_content
+  changed_when: true
