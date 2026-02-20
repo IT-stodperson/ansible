@@ -67,6 +67,7 @@ The handler tolerates these errors gracefully and prints a warning
 recommending a **reboot**. At next boot, `systemd-sysctl.service` loads
 all files from `/etc/sysctl.d/` early enough that the parameters are
 applied before lockdown takes effect.
+
 In short: if you see the reboot warning during a playbook run, the
 configuration file is already in place — a reboot is all that is needed
 for the denied keys to take effect.
