@@ -1,0 +1,21 @@
+---
+# Locale Settings Playbook — Configure system default locale
+#
+# Sets LANG and per-category LC_* variables on Debian servers using
+# update-locale.  Override defaults in group_vars/ or host_vars/.
+#
+# Usage:
+#   Full run:
+#     ansible-playbook playbooks/locale-settings.yml
+#
+#   Single host:
+#     ansible-playbook playbooks/locale-settings.yml --limit <host>
+#
+#   Dry run:
+#     ansible-playbook playbooks/locale-settings.yml --check --diff
+- name: Locale Settings — Configure system default locale
+  hosts: debian_servers
+  become: true
+  roles:
+    - role: locale_settings
+      tags: locale
