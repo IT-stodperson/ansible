@@ -86,5 +86,7 @@ Defaults mailto="{{ sudo_mailto }}"
 {% for account in sudo_service_accounts %}
 # {{ account.comment }}
 {{ account.name }} {{ account.privileges }}
+{% if account.name == 'ansible' %}
 Defaults:{{ account.name }} !requiretty
+{% endif %}
 {% endfor %}
