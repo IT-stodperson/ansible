@@ -24,8 +24,8 @@
       Denied keys: {{ _sysctl_reload.stderr_lines |
       select('match', '^sysctl: permission denied on key') |
       list | join('; ') }}
-  when:
-    - _sysctl_reload.stderr_lines |
-      select('match', '^sysctl: permission denied on key') |
-      list | length > 0
+  when: >-
+    _sysctl_reload.stderr_lines |
+    select('match', '^sysctl: permission denied on key') |
+    list | length > 0
   changed_when: false
