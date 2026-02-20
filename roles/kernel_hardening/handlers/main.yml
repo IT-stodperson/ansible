@@ -4,5 +4,10 @@
 - name: Reload sysctl
   ansible.builtin.command:
     cmd: sysctl -p /etc/sysctl.d/60-kernel-hardening.conf
-  changed_when: true
+  register: _sysctl_reload
+  changed_when: _sysctl_reload.rc == 0
+  failed_when: >-
+    _sysctl_reload.stderr_lines |
+    reject('match', '^sysctl: permission denied on key') |
+    list | length > 0
   become: true
