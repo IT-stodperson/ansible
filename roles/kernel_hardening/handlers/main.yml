@@ -3,6 +3,6 @@
 # handlers file for kernel_hardening
 - name: Reload sysctl
   ansible.builtin.command:
-    cmd: sysctl --system
+    cmd: sysctl -p /etc/sysctl.d/60-kernel-hardening.conf
   changed_when: true
   become: true
