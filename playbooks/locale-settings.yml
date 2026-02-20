@@ -13,6 +13,7 @@
 #
 #   Dry run:
 #     ansible-playbook playbooks/locale-settings.yml --check --diff
+
 - name: Locale Settings — Configure system default locale
   hosts: debian_servers
   become: true
