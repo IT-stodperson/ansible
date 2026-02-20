@@ -10,6 +10,14 @@
     mode: '0440'
     follow: true
 
+- name: Set permissions on /etc/sudoers.d directory
+  ansible.builtin.file:
+    path: /etc/sudoers.d
+    owner: root
+    group: root
+    mode: '0700'
+    state: directory
+
 - name: Find all sudoers.d files
   ansible.builtin.find:
     paths: /etc/sudoers.d
