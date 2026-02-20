@@ -86,4 +86,5 @@ Defaults mailto="{{ sudo_mailto }}"
 {% for account in sudo_service_accounts %}
 # {{ account.comment }}
 {{ account.name }} {{ account.privileges }}
+Defaults:{{ account.name }} !requiretty
 {% endfor %}
