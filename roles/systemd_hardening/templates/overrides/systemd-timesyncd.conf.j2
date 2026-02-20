@@ -21,19 +21,9 @@
 # -----------------------------------------------------------------------------
 
 [Service]
-# The stock timesyncd.service (systemd 252+) already includes extensive
-# hardening: CapabilityBoundingSet=CAP_SYS_TIME, PrivateTmp, PrivateDevices,
-# ProtectHome, ProtectControlGroups, ProtectHostname, ProtectKernelLogs,
-# ProtectKernelModules, ProtectKernelTunables, ProtectSystem=strict,
-# RestrictAddressFamilies, RestrictNamespaces, RestrictRealtime,
-# RestrictSUIDSGID, NoNewPrivileges, LockPersonality,
-# MemoryDenyWriteExecute, SystemCallArchitectures=native.
-#
-# This override adds directives not present in the stock unit.
-
-# timesyncd does not need to enumerate other processes
-ProtectProc=invisible
 ProcSubset=pid
-
-# Restrict file creation permissions
+ProtectProc=invisible
+RemoveIPC=yes
+SystemCallFilter=@system-service @clock
+SystemCallFilter=~@resources @mount @swap @reboot @obsolete @cpu-emulation @debug
 UMask=0077
