@@ -1,7 +1,9 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # handlers file for kernel_hardening
-- name: Reload sysctl
+
+- name: Apply sysctl configuration
+  listen: Reload sysctl
   ansible.builtin.command:
     cmd: sysctl -p /etc/sysctl.d/60-kernel-hardening.conf
   register: _sysctl_reload
@@ -11,3 +13,19 @@
     reject('match', '^sysctl: permission denied on key') |
     list | length > 0
   become: true
+
+- name: Recommend reboot if sysctl parameters were denied
+  listen: Reload sysctl
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: Some sysctl parameters could not be applied due to kernel
+      lockdown (Secure Boot). A reboot is recommended so that
+      systemd-sysctl.service can apply all parameters at next boot.
+      Denied keys: {{ _sysctl_reload.stderr_lines |
+      select('match', '^sysctl: permission denied on key') |
+      list | join('; ') }}
+  when:
+    - _sysctl_reload.stderr_lines |
+      select('match', '^sysctl: permission denied on key') |
+      list | length > 0
+  changed_when: false
