@@ -55,6 +55,22 @@ Default blacklisted modules include: `afs`, `atm`, `can`, `ceph`,
 - Hard nproc limit (configurable)
 - Core dumps disabled (`hard core 0`)
 
+Secure Boot and Kernel Lockdown
+--------------------------------
+
+When **Secure Boot** is enabled, the kernel activates **lockdown** in
+`integrity` mode. This prevents writing to certain `/proc/sys/` keys at
+runtime, even as root. As a result, `sysctl -p` will report "permission
+denied on key" for some parameters.
+
+The handler tolerates these errors gracefully and prints a warning
+recommending a **reboot**. At next boot, `systemd-sysctl.service` loads
+all files from `/etc/sysctl.d/` early enough that the parameters are
+applied before lockdown takes effect.
+In short: if you see the reboot warning during a playbook run, the
+configuration file is already in place — a reboot is all that is needed
+for the denied keys to take effect.
+
 Dependencies
 ------------
 
