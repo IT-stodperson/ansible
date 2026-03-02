@@ -103,6 +103,27 @@ sudo git push -u origin main
 
 ## Running playbooks
 
+### First-time bootstrap
+
+To run the very first YAML (the bootstrap), you need to go to the target server and temporarily enable SSH root login:
+
+1. On the target server, edit the SSH daemon configuration:
+   ```bash
+   sudo nano /etc/ssh/sshd_config
+   ```
+2. Set `PermitRootLogin yes`.
+3. Restart the SSH daemon:
+   ```bash
+   sudo systemctl restart sshd
+   ```
+4. Run the bootstrap playbook from the Ansible controller.
+5. Once the bootstrap is complete, go back to the target server and set `PermitRootLogin no` (or remove the line), then restart the SSH daemon again:
+   ```bash
+   sudo systemctl restart sshd
+   ```
+
+### General usage
+
 Apply the full security hardening baseline:
 
 ```bash
