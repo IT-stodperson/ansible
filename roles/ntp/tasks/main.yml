@@ -2,6 +2,11 @@
 ---
 # Configure NTP via systemd-timesyncd.
 
+- name: Install systemd-timesyncd
+  ansible.builtin.package:
+    name: systemd-timesyncd
+    state: present
+
 - name: Ensure timesyncd config directory exists
   ansible.builtin.file:
     path: /etc/systemd/timesyncd.conf.d
