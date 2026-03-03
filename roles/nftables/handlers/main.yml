@@ -1,3 +1,14 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # handlers file for nftables
+
+- name: Validate and reload nftables
+  ansible.builtin.command:
+    cmd: nft -c -f /etc/nftables.conf
+  changed_when: true
+  notify: Reload nftables
+
+- name: Reload nftables
+  ansible.builtin.systemd:
+    name: nftables
+    state: restarted
