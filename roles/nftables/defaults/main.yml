@@ -1,3 +1,27 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # defaults file for nftables
+
+# ============================================================================
+# SSH Allowed Networks
+# ============================================================================
+# Split into "Teacher" (staff/management) and "Student" networks.
+# Hosts can use either set or both in their nftables templates.
+#
+# Override these in group_vars or host_vars as needed.
+
+# --- Teacher networks (staff/management) ---
+nft_ssh_teacher_v4:
+  - "10.0.20.0/24"
+  - "10.0.30.0/24"
+
+nft_ssh_teacher_v6:
+  - "2a00:5500:c00a:20::/64"
+  - "2a00:5500:c00a:30::/64"
+
+# --- Student networks ---
+nft_ssh_student_v4:
+  - "192.168.20.0/24"
+  - "192.168.30.0/24"
+
+nft_ssh_student_v6: []
