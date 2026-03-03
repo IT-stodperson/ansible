@@ -116,9 +116,7 @@ table inet filter {
         set ssh_allowed_v6 {
                 type ipv6_addr
                 flags interval
-{% if nft_ssh_teacher_v6 | length > 0 %}
                 elements = { {{ nft_ssh_teacher_v6 | join(', ') }} }
-{% endif %}
         }
 
         # ====================================================================
