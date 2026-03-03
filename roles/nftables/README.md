@@ -31,10 +31,10 @@ SSH allowed networks are split into **Teacher** (staff/management) and
 
 | Variable                | Default                                              | Description                  |
 |-------------------------|------------------------------------------------------|------------------------------|
-| `nft_ssh_teacher_v4`    | `["10.0.20.0/24", "10.0.30.0/24"]`                  | Teacher IPv4 SSH networks    |
-| `nft_ssh_teacher_v6`    | `["2a00:5500:c00a:20::/64", "2a00:5500:c00a:30::/64"]` | Teacher IPv6 SSH networks |
-| `nft_ssh_student_v4`    | `["192.168.20.0/24", "192.168.30.0/24"]`             | Student IPv4 SSH networks    |
-| `nft_ssh_student_v6`    | `[]`                                                 | Student IPv6 SSH networks    |
+| `nft_ssh_teacher_v4`    | `["10.0.20.0/24", "192.168.20.0/24"]`                | Teacher IPv4 SSH networks (incl. VPN)  |
+| `nft_ssh_teacher_v6`    | `["2a00:5500:c00a:20::/64"]`                         | Teacher IPv6 SSH networks              |
+| `nft_ssh_student_v4`    | `["10.0.30.0/24", "192.168.30.0/24"]`                | Student IPv4 SSH networks (incl. VPN)  |
+| `nft_ssh_student_v6`    | `["2a00:5500:c00a:30::/64"]`                         | Student IPv6 SSH networks              |
 
 Templates can reference these variables to build the SSH ACL sets. For example:
 
