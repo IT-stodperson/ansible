@@ -25,3 +25,31 @@ nft_ssh_student_v4:
 
 nft_ssh_student_v6:
   - "2a00:5500:c00a:30::/64"
+
+# ============================================================================
+# Internal Networks (for hybrid REJECT/DROP verdict)
+# ============================================================================
+# Internal sources get REJECT (immediate feedback for debugging).
+# Everything else gets silent DROP (slows down external scanners).
+#
+# Override these in group_vars or host_vars as needed.
+
+nft_internal_nets_v4:
+  - "10.0.0.0/24"        # Default
+  - "10.0.10.0/24"       # DMZ
+  - "10.0.20.0/24"       # Teacher
+  - "10.0.30.0/24"       # Student
+  - "10.0.40.0/24"       # Storage
+  - "10.0.60.0/22"       # Lab
+  - "10.0.99.0/24"       # Management
+  - "192.168.20.0/24"    # Teacher VPN
+  - "192.168.30.0/24"    # Student VPN
+
+nft_internal_nets_v6:
+  - "2a00:5500:c00a:1::/64"    # Default
+  - "2a00:5500:c00a:10::/64"   # DMZ
+  - "2a00:5500:c00a:20::/64"   # Teacher
+  - "2a00:5500:c00a:30::/64"   # Student
+  - "2a00:5500:c00a:40::/64"   # Storage
+  - "2a00:5500:c00a:60::/64"   # Lab
+  - "2a00:5500:c00a:99::/64"   # Management
