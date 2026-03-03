@@ -1,39 +1,107 @@
 #!/usr/sbin/nft -f
-# {{ ansible_managed }}
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   nftables is the modern Linux kernel packet classification framework.
+#   This is used to block and allow traffic to the server.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template variable and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
 
 # ============================================================================
-# Base nftables Firewall Configuration
+# Base nftables Firewall Configuration — {{ inventory_hostname }}
 # ============================================================================
 # Default ruleset applied when no host-specific template exists.
 # SSH access: Teacher networks only.
+# Hybrid final verdict: REJECT for internal sources, DROP for external.
+#
+# Compatibility: nftables >= 1.0.1 / kernel >= 5.13
 # ============================================================================
 
 flush ruleset
 
+# =========================
+# Tunables
+# =========================
+define SSH_PORT = 22
+
 # ============================================================================
-# MANGLE TABLE - Early Packet Filtering
+# NETDEV TABLE — Earliest Possible Filtering (before conntrack)
+# ============================================================================
+# Processes packets at ingress before IP reassembly and conntrack.
+# Ideal for volumetric DDoS mitigation — cheapest possible CPU cost per drop.
+#
+# To enable: set nft_ingress_device in host_vars (e.g. "eth0").
+# ============================================================================
+{% if nft_ingress_device is defined and nft_ingress_device %}
+
+table netdev early_filter {
+        chain ingress {
+                type filter hook ingress device "{{ nft_ingress_device }}" priority -500; policy accept;
+
+                # Xmas scan
+                tcp flags & (fin|syn|rst|psh|ack|urg) == fin|syn|rst|psh|ack|urg counter drop comment "Drop Xmas scan (ingress)"
+
+                # NULL scan
+                tcp flags & (fin|syn|rst|psh|ack|urg) == 0x0 counter drop comment "Drop NULL scan (ingress)"
+
+                # SYN-FIN / SYN-RST / FIN-RST
+                tcp flags & (syn|fin) == syn|fin counter drop comment "Drop SYN-FIN (ingress)"
+                tcp flags & (syn|rst) == syn|rst counter drop comment "Drop SYN-RST (ingress)"
+                tcp flags & (fin|rst) == fin|rst counter drop comment "Drop FIN-RST (ingress)"
+        }
+}
+{% endif %}
+
+# ============================================================================
+# MANGLE TABLE — Early Packet Filtering (First Line of Defense)
 # ============================================================================
 
 table inet mangle {
         chain prerouting {
                 type filter hook prerouting priority mangle; policy accept;
 
+                # Drop INVALID early
                 ct state invalid counter drop comment "Drop invalid packets"
+
+                # TCP sanity for NEW
                 tcp flags & (fin|syn|rst|ack) != syn ct state new counter drop comment "Drop non-SYN new connections"
+
+                # Simple scan signatures
                 tcp flags & (fin|syn|rst|psh|ack|urg) == fin|syn|rst|psh|ack|urg counter drop comment "Drop Xmas scan"
                 tcp flags & (fin|syn|rst|psh|ack|urg) == 0x0 counter drop comment "Drop NULL scan"
                 tcp flags & (syn|fin) == syn|fin counter drop comment "Drop SYN-FIN"
                 tcp flags & (syn|rst) == syn|rst counter drop comment "Drop SYN-RST"
                 tcp flags & (fin|rst) == fin|rst counter drop comment "Drop FIN-RST"
-                tcp flags syn tcp option maxseg size 1-535 counter drop comment "Drop invalid MSS"
-                iifname != "lo" ip saddr 127.0.0.0/8 counter drop comment "Drop spoofed IPv4 loopback"
-                iifname != "lo" ip6 saddr ::1/128 counter drop comment "Drop spoofed IPv6 loopback"
-                meta l4proto tcp ip frag-off & 0x1fff != 0 counter drop comment "Drop fragmented TCP"
+
+                # Spoofed loopback
+                iifname != "lo" ip  saddr 127.0.0.0/8 counter drop comment "Drop spoofed IPv4 loopback"
+                iifname != "lo" ip6 saddr ::1/128     counter drop comment "Drop spoofed IPv6 loopback"
+
+                # Drop obviously bogus MSS (can break some tunneled/odd links; keep conservative)
+                tcp flags syn tcp option maxseg size 1-400 counter drop comment "Drop extremely small MSS"
+
+                # Drop fragmented TCP (IPv4: any fragment; IPv6: fragment header present)
+                meta nfproto ipv4 meta l4proto tcp ip frag-off & 0x3fff != 0   counter drop comment "Drop IPv4 fragmented TCP"
+                meta nfproto ipv6 meta l4proto tcp exthdr frag exists          counter drop comment "Drop IPv6 fragmented TCP"
         }
 }
 
 # ============================================================================
-# FILTER TABLE
+# FILTER TABLE — Main Firewall
 # ============================================================================
 
 table inet filter {
@@ -56,115 +124,68 @@ table inet filter {
         }
 
         # ====================================================================
+        # Internal Network Sets (for hybrid reject/drop verdict)
+        # ====================================================================
+        # Internal sources get REJECT (immediate feedback for debugging).
+        # Everything else gets silent DROP (slows down external scanners).
+
+        set internal_nets_v4 {
+                type ipv4_addr
+                flags interval
+                elements = { {{ nft_internal_nets_v4 | join(', ') }} }
+        }
+
+        set internal_nets_v6 {
+                type ipv6_addr
+                flags interval
+                elements = { {{ nft_internal_nets_v6 | join(', ') }} }
+        }
+
+        # ====================================================================
         # Rate Limiting Sets
         # ====================================================================
 
-        set ssh_ratelimit_v4 {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 1h
-        }
+        # SSH: per-IP new connection rate
+        set ssh_rate_v4 { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1h; }
+        set ssh_rate_v6 { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1h; }
+        set ssh_log_v4  { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set ssh_log_v6  { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
 
-        set ssh_ratelimit_v6 {
-                type ipv6_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 1h
-        }
-
-        set syn_flood_v4 {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 10s
-        }
-
-        set syn_flood_v6 {
-                type ipv6_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 10s
-        }
-
-        set connlimit_log_v4 {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 1m
-        }
-
-        set connlimit_log_v6 {
-                type ipv6_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 1m
-        }
-
-        set synflood_log_v4 {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 1m
-        }
-
-        set synflood_log_v6 {
-                type ipv6_addr
-                size 65535
-                flags dynamic,timeout
-                timeout 1m
-        }
+        # SSH: per-IP concurrent connections
+        set ssh_connlimit_v4 { type ipv4_addr; flags dynamic; size 65535; }
+        set ssh_connlimit_v6 { type ipv6_addr; flags dynamic; size 65535; }
+        set ssh_connlog_v4   { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set ssh_connlog_v6   { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
 
         # ====================================================================
-        # Connection Limiting Chains
+        # SSH Guard Chains
         # ====================================================================
 
-        chain connlimit_v4 {
-                ct state new add @connlimit_log_v4 { ip saddr limit rate 1/minute burst 1 packets } \
-                        ct count over 100 \
-                        log prefix "[NFT Connlimit v4] " \
-                        comment "Log connection limit exceeded"
+        chain ssh_guard_v4 {
+                # Drop if >10 concurrent SSH sessions from same source
+                add @ssh_connlimit_v4 { ip saddr ct count over 10 } \
+                        add @ssh_connlog_v4 { ip saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT SSH connlimit v4] " drop
 
-                ct state new ct count over 100 counter drop comment "Drop if over 100 concurrent connections"
+                # Per-IP new-connection rate limit
+                add @ssh_rate_v4 { ip saddr limit rate 10/minute burst 5 packets } accept
 
-                jump syn_flood_protection_v4
+                # Over rate: throttled log then drop
+                add @ssh_log_v4 { ip saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT SSH ratelimit v4] "
+                drop
         }
 
-        chain connlimit_v6 {
-                ct state new add @connlimit_log_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
-                        ct count over 100 \
-                        log prefix "[NFT Connlimit v6] " \
-                        comment "Log connection limit exceeded"
+        chain ssh_guard_v6 {
+                add @ssh_connlimit_v6 { ip6 saddr ct count over 10 } \
+                        add @ssh_connlog_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT SSH connlimit v6] " drop
 
-                ct state new ct count over 100 counter drop comment "Drop if over 100 concurrent connections"
+                add @ssh_rate_v6 { ip6 saddr limit rate 10/minute burst 5 packets } accept
 
-                jump syn_flood_protection_v6
-        }
-
-        # ====================================================================
-        # SYN Flood Protection Chains
-        # ====================================================================
-
-        chain syn_flood_protection_v4 {
-                ct state new add @syn_flood_v4 { ip saddr limit rate 30/second burst 60 packets } \
-                        counter accept comment "Allow normal SYN rate"
-
-                ct state new add @synflood_log_v4 { ip saddr limit rate 1/minute burst 1 packets } \
-                        log prefix "[NFT SYN Flood v4] " \
-                        comment "Log SYN flood detected"
-
-                ct state new counter drop comment "Drop SYN flood"
-        }
-
-        chain syn_flood_protection_v6 {
-                ct state new add @syn_flood_v6 { ip6 saddr limit rate 30/second burst 60 packets } \
-                        counter accept comment "Allow normal SYN rate"
-
-                ct state new add @synflood_log_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
-                        log prefix "[NFT SYN Flood v6] " \
-                        comment "Log SYN flood detected"
-
-                ct state new counter drop comment "Drop SYN flood"
+                add @ssh_log_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT SSH ratelimit v6] "
+                drop
         }
 
         # ====================================================================
@@ -172,30 +193,29 @@ table inet filter {
         # ====================================================================
 
         chain inbound_ipv4 {
-                icmp type echo-request limit rate 5/second accept comment "Ping with rate limit"
-                icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "Essential ICMP"
+                # ICMPv4 essentials + ping rate limit
+                icmp type echo-request limit rate 5/second accept comment "Ping (rate-limited)"
+                icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "Essential ICMPv4"
 
-                ip saddr 0.0.0.0 ip daddr 255.255.255.255 udp sport 68 udp dport 67 accept comment "DHCP discovery"
-                udp sport 67 udp dport 68 accept comment "DHCP responses"
+                # DHCP client: allow server replies (inbound)
+                udp sport 67 udp dport 68 accept comment "DHCPv4 replies"
 
-                ip saddr @ssh_allowed_v4 ct state new tcp dport 22 \
-                        add @ssh_ratelimit_v4 { ip saddr limit rate 10/minute burst 5 packets } \
-                        counter accept comment "SSH from allowed networks"
+                # SSH from allowed networks → guard chain (rate + connlimit)
+                ip saddr @ssh_allowed_v4 tcp dport $SSH_PORT ct state new jump ssh_guard_v4
         }
 
         chain inbound_ipv6 {
-                icmpv6 type { nd-router-solicit, nd-router-advert } ip6 hoplimit 255 accept comment "Router Discovery for SLAAC"
-                icmpv6 type { nd-neighbor-solicit, nd-neighbor-advert } ip6 hoplimit 255 accept comment "Neighbor Discovery Protocol"
-                icmpv6 type nd-redirect ip6 hoplimit 255 accept comment "ICMPv6 Redirect"
-                icmpv6 type { mld-listener-query, mld-listener-report, mld-listener-done, mld2-listener-report } ip6 hoplimit 1 accept comment "MLD for multicast"
+                # ICMPv6 essentials (NDP/PMTU). Avoid redirects unless you *need* them.
+                icmpv6 type { nd-neighbor-solicit, nd-neighbor-advert } ip6 hoplimit 255 accept comment "NDP"
+                icmpv6 type nd-router-advert ip6 hoplimit 255 accept comment "Router Advert (SLAAC)"
                 icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem } accept comment "ICMPv6 errors"
-                icmpv6 type { echo-request, echo-reply } limit rate 5/second accept comment "ICMPv6 ping with rate limit"
+                icmpv6 type { echo-request, echo-reply } limit rate 5/second accept comment "Ping6 (rate-limited)"
 
-                ip6 saddr fe80::/10 udp sport 547 udp dport 546 accept comment "DHCPv6 client"
+                # DHCPv6 client
+                ip6 saddr fe80::/10 udp sport 547 udp dport 546 accept comment "DHCPv6 replies"
 
-                ip6 saddr @ssh_allowed_v6 ct state new tcp dport 22 \
-                        add @ssh_ratelimit_v6 { ip6 saddr limit rate 10/minute burst 5 packets } \
-                        counter accept comment "SSH from allowed IPv6 networks"
+                # SSH from allowed v6 networks → guard chain (rate + connlimit)
+                ip6 saddr @ssh_allowed_v6 tcp dport $SSH_PORT ct state new jump ssh_guard_v6
         }
 
         # ====================================================================
@@ -205,10 +225,27 @@ table inet filter {
         chain inbound {
                 type filter hook input priority filter; policy drop;
 
-                iifname "lo" accept comment "Allow loopback"
-                ct state { established, related } accept comment "Allow established/related"
+                iifname "lo" accept comment "Loopback"
+                ct state invalid drop comment "Drop INVALID (belt-and-suspenders)"
+                ct state { established, related } accept comment "Established/related"
+
                 meta nfproto vmap { ipv4 : jump inbound_ipv4, ipv6 : jump inbound_ipv6 } comment "Protocol-specific rules"
 
+                # ============================================================
+                # Final verdict: REJECT internal (fast feedback), DROP external
+                # ============================================================
+                # Log rules are separate from verdict rules because `limit`
+                # is a match expression — if the rate is exceeded the rule
+                # does not match and the packet would skip the verdict.
+
+                # Internal: rate-limited log, then unconditional reject
+                ip  saddr @internal_nets_v4 limit rate 10/minute log prefix "[NFT IN reject v4] "
+                ip  saddr @internal_nets_v4 counter reject with icmpx type port-unreachable
+                ip6 saddr @internal_nets_v6 limit rate 10/minute log prefix "[NFT IN reject v6] "
+                ip6 saddr @internal_nets_v6 counter reject with icmpx type port-unreachable
+
+                # External: rate-limited log, then unconditional drop
+                limit rate 10/minute log prefix "[NFT IN drop] "
                 counter drop
         }
 
@@ -218,6 +255,8 @@ table inet filter {
 
         chain forward {
                 type filter hook forward priority filter; policy drop;
+                limit rate 5/minute log prefix "[NFT FWD drop] "
+                counter drop
         }
 
         chain outbound {
