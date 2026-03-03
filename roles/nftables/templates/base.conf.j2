@@ -24,11 +24,9 @@
 # ============================================================================
 # Base nftables Firewall Configuration — {{ inventory_hostname }}
 # ============================================================================
-# Default ruleset applied when no host-specific template exists.
-# SSH access: Teacher networks only.
-# Hybrid final verdict: REJECT for internal sources, DROP for external.
-#
-# Compatibility: nftables >= 1.0.1 / kernel >= 5.13
+# - Default ruleset applied when no host-specific template exists.
+# - SSH access: Teacher networks only.
+# - Hybrid final verdict: REJECT for internal sources, DROP for external.
 # ============================================================================
 
 flush ruleset
