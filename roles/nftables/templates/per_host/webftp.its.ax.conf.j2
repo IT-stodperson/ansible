@@ -28,6 +28,7 @@
 # - SSH from: Teacher + Student networks
 # - HTTP/HTTPS from: all networks (public webserver)
 # - Rate limiting for brute-force protection
+# - Hybrid final verdict: REJECT for internal sources, DROP for external
 # ============================================================================
 
 flush ruleset
@@ -37,6 +38,32 @@ flush ruleset
 # =========================
 define SSH_PORT = 22
 define WEB_PORTS = { 80, 443 }
+
+# ============================================================================
+# NETDEV TABLE — Earliest Possible Filtering (before conntrack)
+# ============================================================================
+# Processes packets at ingress before IP reassembly and conntrack.
+# Ideal for volumetric DDoS mitigation — cheapest possible CPU cost per drop.
+#
+# To enable: set nft_ingress_device in host_vars (e.g. "eth0").
+# ============================================================================
+
+table netdev early_filter {
+        chain ingress {
+                type filter hook ingress device "{{ nft_ingress_device }}" priority -500; policy accept;
+
+                # Xmas scan
+                tcp flags & (fin|syn|rst|psh|ack|urg) == fin|syn|rst|psh|ack|urg counter drop comment "Drop Xmas scan (ingress)"
+
+                # NULL scan
+                tcp flags & (fin|syn|rst|psh|ack|urg) == 0x0 counter drop comment "Drop NULL scan (ingress)"
+
+                # SYN-FIN / SYN-RST / FIN-RST
+                tcp flags & (syn|fin) == syn|fin counter drop comment "Drop SYN-FIN (ingress)"
+                tcp flags & (syn|rst) == syn|rst counter drop comment "Drop SYN-RST (ingress)"
+                tcp flags & (fin|rst) == fin|rst counter drop comment "Drop FIN-RST (ingress)"
+        }
+}
 
 # ============================================================================
 # MANGLE TABLE - Early Packet Filtering (First Line of Defense)
