@@ -52,7 +52,7 @@ define DB_PORT  = 3306
 
 table netdev early_filter {
         chain ingress {
-                type filter hook ingress device "{{ nft_ingress_device }}" priority -500; policy accept;
+                type filter hook ingress devices = { "{{ nft_ingress_device | join('", "') }}" } priority -500; policy accept;
 
                 # Xmas scan
                 tcp flags & (fin|syn|rst|psh|ack|urg) == fin|syn|rst|psh|ack|urg counter drop comment "Drop Xmas scan (ingress)"
