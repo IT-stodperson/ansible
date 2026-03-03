@@ -1,5 +1,25 @@
 #!/usr/sbin/nft -f
-# {{ ansible_managed }}
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   nftables is the modern Linux kernel packet classification framework. 
+#   This is used to block and allow traffic to the server.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template variable and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
 
 # ============================================================================
 # Comprehensive nftables Firewall Configuration — {{ inventory_hostname }}
