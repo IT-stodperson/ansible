@@ -2,6 +2,10 @@
 ---
 # defaults file for nftables
 
+# The default network interface name on Proxmox Linux VMs
+nft_ingress_device:
+  - "ens18"
+
 # ============================================================================
 # SSH Allowed Networks
 # ============================================================================
