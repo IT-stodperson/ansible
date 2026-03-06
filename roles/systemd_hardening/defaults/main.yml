@@ -19,3 +19,4 @@ systemd_hardening_services:
   - ssh
   - systemd-journald
   - systemd-timesyncd
+  - wazuh-manager
