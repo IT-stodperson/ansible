@@ -24,8 +24,9 @@
 # ============================================================================
 # Base nftables Firewall Configuration — {{ inventory_hostname }}
 # ============================================================================
-# - Default ruleset applied when no host-specific template exists.
-# - SSH access: Teacher networks only.
+# - Base ruleset applied to every host.
+# - SSH access: Ansible server + networks from nft_ssh_allowed_v4/v6.
+# - Per-host service rules included from per_host/<hostname>/ snippets.
 # - Hybrid final verdict: REJECT for internal sources, DROP for external.
 # ============================================================================
 
@@ -35,6 +36,7 @@ flush ruleset
 # Tunables
 # =========================
 define SSH_PORT = 22
+{% include 'per_host/' + inventory_hostname + '_defines.j2' ignore missing %}
 
 # ============================================================================
 # NETDEV TABLE — Earliest Possible Filtering (before conntrack)
@@ -104,19 +106,20 @@ table inet mangle {
 
 table inet filter {
         # ====================================================================
-        # SSH Access Control Sets — Teacher networks only
+        # SSH Access Control Sets
         # ====================================================================
+        # Networks from nft_ssh_allowed_v4/v6 plus the Ansible control node.
 
         set ssh_allowed_v4 {
                 type ipv4_addr
                 flags interval
-                elements = { {{ nft_ssh_teacher_v4 | join(', ') }} }
+                elements = { {{ (nft_ssh_allowed_v4 + [nft_ansible_server_v4]) | join(', ') }} }
         }
 
         set ssh_allowed_v6 {
                 type ipv6_addr
                 flags interval
-                elements = { {{ nft_ssh_teacher_v6 | join(', ') }} }
+                elements = { {{ (nft_ssh_allowed_v6 + [nft_ansible_server_v6]) | join(', ') }} }
         }
 
         # ====================================================================
@@ -154,6 +157,11 @@ table inet filter {
         set ssh_connlog_v6   { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
 
         # ====================================================================
+        # Per-Host Service Sets and Rate Limiting Sets
+        # ====================================================================
+{% include 'per_host/' + inventory_hostname + '_sets.j2' ignore missing %}
+
+        # ====================================================================
         # SSH Guard Chains
         # ====================================================================
 
@@ -185,6 +193,11 @@ table inet filter {
         }
 
         # ====================================================================
+        # Per-Host Service Guard Chains
+        # ====================================================================
+{% include 'per_host/' + inventory_hostname + '_chains.j2' ignore missing %}
+
+        # ====================================================================
         # Protocol-Specific Input Chains
         # ====================================================================
 
@@ -198,6 +211,9 @@ table inet filter {
 
                 # SSH from allowed networks → guard chain (rate + connlimit)
                 ip saddr @ssh_allowed_v4 tcp dport $SSH_PORT ct state new jump ssh_guard_v4
+
+                # Per-host service rules (IPv4)
+{% include 'per_host/' + inventory_hostname + '_inbound_v4.j2' ignore missing %}
         }
 
         chain inbound_ipv6 {
@@ -212,6 +228,9 @@ table inet filter {
 
                 # SSH from allowed v6 networks → guard chain (rate + connlimit)
                 ip6 saddr @ssh_allowed_v6 tcp dport $SSH_PORT ct state new jump ssh_guard_v6
+
+                # Per-host service rules (IPv6)
+{% include 'per_host/' + inventory_hostname + '_inbound_v6.j2' ignore missing %}
         }
 
         # ====================================================================

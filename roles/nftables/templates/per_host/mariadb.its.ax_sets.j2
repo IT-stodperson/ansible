@@ -1,0 +1,29 @@
+
+        # ====================================================================
+        # MariaDB Access Control Sets
+        # ====================================================================
+        # Teacher + Teacher VPN, Student + Student VPN, webftp (10.0.10.10)
+
+        set db_allowed_v4 {
+                type ipv4_addr
+                flags interval
+                elements = { {{ (nft_ssh_teacher_v4 + nft_ssh_student_v4 + ['10.0.10.10']) | join(', ') }} }
+        }
+
+        set db_allowed_v6 {
+                type ipv6_addr
+                flags interval
+                elements = { {{ (nft_ssh_teacher_v6 + nft_ssh_student_v6) | join(', ') }} }
+        }
+
+        # MariaDB: per-IP new connection rate
+        set db_rate_v4 { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1h; }
+        set db_rate_v6 { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1h; }
+        set db_log_v4  { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set db_log_v6  { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # MariaDB: per-IP concurrent connections
+        set db_connlimit_v4 { type ipv4_addr; flags dynamic; size 65535; }
+        set db_connlimit_v6 { type ipv6_addr; flags dynamic; size 65535; }
+        set db_connlog_v4   { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set db_connlog_v6   { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }

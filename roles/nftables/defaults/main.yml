@@ -7,6 +7,15 @@ nft_ingress_device:
   - "ens18"
 
 # ============================================================================
+# Ansible Control Node
+# ============================================================================
+# The Ansible server is always granted SSH access regardless of which
+# network groups are selected for a given host.
+
+nft_ansible_server_v4: "10.0.99.22"
+nft_ansible_server_v6: "2a00:5500:c00a:99:be24:11ff:feb3:33d0"
+
+# ============================================================================
 # SSH Allowed Networks
 # ============================================================================
 # Split into "Teacher" (staff/management) and "Student" networks.
@@ -29,6 +38,19 @@ nft_ssh_student_v4:
 
 nft_ssh_student_v6:
   - "2a00:5500:c00a:30::/64"
+
+# ============================================================================
+# SSH Allowed Networks (per-host override)
+# ============================================================================
+# Which network groups are allowed SSH. Override in host_vars to combine
+# groups, e.g. for webftp:
+#   nft_ssh_allowed_v4: "{{ nft_ssh_teacher_v4 + nft_ssh_student_v4 }}"
+#
+# The Ansible control node (nft_ansible_server_v4/v6) is always added
+# automatically by the base template — do not include it here.
+
+nft_ssh_allowed_v4: "{{ nft_ssh_teacher_v4 }}"
+nft_ssh_allowed_v6: "{{ nft_ssh_teacher_v6 }}"
 
 # ============================================================================
 # Internal Networks (for hybrid REJECT/DROP verdict)

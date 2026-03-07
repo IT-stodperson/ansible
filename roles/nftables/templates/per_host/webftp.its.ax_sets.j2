@@ -1,0 +1,12 @@
+
+        # Web: per-IP SYN rate
+        set web_synrate_v4 { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 10s; }
+        set web_synrate_v6 { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 10s; }
+        set web_synlog_v4  { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set web_synlog_v6  { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # Web: per-IP concurrent connections (ct count)
+        set web_connlimit_v4 { type ipv4_addr; flags dynamic; size 65535; }
+        set web_connlimit_v6 { type ipv6_addr; flags dynamic; size 65535; }
+        set web_connlog_v4   { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set web_connlog_v6   { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }

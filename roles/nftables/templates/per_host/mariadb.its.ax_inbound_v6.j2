@@ -1,0 +1,3 @@
+
+                # MariaDB from allowed v6 networks → guard chain (rate + connlimit)
+                ip6 saddr @db_allowed_v6 tcp dport $DB_PORT ct state new jump db_guard_v6

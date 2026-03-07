@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# nftables overrides for webftp.its.ax
+# SSH access: Teacher + Student networks (base default is Teacher only)
+
+nft_ssh_allowed_v4: "{{ nft_ssh_teacher_v4 + nft_ssh_student_v4 }}"
+nft_ssh_allowed_v6: "{{ nft_ssh_teacher_v6 + nft_ssh_student_v6 }}"

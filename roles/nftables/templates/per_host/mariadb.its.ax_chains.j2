@@ -1,0 +1,31 @@
+
+        # ====================================================================
+        # MariaDB Guard Chains
+        # ====================================================================
+
+        chain db_guard_v4 {
+                # Drop if >50 concurrent DB connections from same source
+                add @db_connlimit_v4 { ip saddr ct count over 50 } \
+                        add @db_connlog_v4 { ip saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT DB connlimit v4] " drop
+
+                # Per-IP new-connection rate limit
+                add @db_rate_v4 { ip saddr limit rate 30/minute burst 10 packets } accept
+
+                # Over rate: throttled log then drop
+                add @db_log_v4 { ip saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT DB ratelimit v4] "
+                drop
+        }
+
+        chain db_guard_v6 {
+                add @db_connlimit_v6 { ip6 saddr ct count over 50 } \
+                        add @db_connlog_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT DB connlimit v6] " drop
+
+                add @db_rate_v6 { ip6 saddr limit rate 30/minute burst 10 packets } accept
+
+                add @db_log_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT DB ratelimit v6] "
+                drop
+        }
