@@ -67,7 +67,7 @@ groups are added to the SSH ACL. Override in `host_vars` to combine groups.
 Example host_vars override for Teacher + Student SSH access:
 
 ```yaml
-# host_vars/webftp.its.ax/nftables.yml
+# inventory/host_vars/webftp.its.ax.yml
 nft_ssh_allowed_v4: "{{ nft_ssh_teacher_v4 + nft_ssh_student_v4 }}"
 nft_ssh_allowed_v6: "{{ nft_ssh_teacher_v6 + nft_ssh_student_v6 }}"
 ```
@@ -123,12 +123,9 @@ ansible-playbook playbooks/nftables-hardening.yml --check --diff
    newhost.its.ax_inbound_v4.j2   # IPv4 inbound rules
    newhost.its.ax_inbound_v6.j2   # IPv6 inbound rules
    ```
-2. If the host needs non-default SSH access, create a host_vars override:
-   ```bash
-   mkdir -p host_vars/newhost.its.ax
-   ```
+2. If the host needs non-default SSH access, add an override in
+   `inventory/host_vars/newhost.its.ax.yml`:
    ```yaml
-   # host_vars/newhost.its.ax/nftables.yml
    nft_ssh_allowed_v4: "{{ nft_ssh_teacher_v4 + nft_ssh_student_v4 }}"
    nft_ssh_allowed_v6: "{{ nft_ssh_teacher_v6 + nft_ssh_student_v6 }}"
    ```
