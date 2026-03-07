@@ -16,6 +16,7 @@
 systemd_hardening_services:
   - auditd
   - cron
+  - kanidm-unixd
   - ssh
   - systemd-journald
   - systemd-timesyncd

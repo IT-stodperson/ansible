@@ -1,0 +1,35 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   NSSwitch configuration with Kanidm identity resolution.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template or inventory variables and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+passwd:         {{ kanidm_nsswitch_passwd }}
+group:          {{ kanidm_nsswitch_group }}
+shadow:         files systemd
+gshadow:        files systemd
+
+hosts:          files myhostname resolve [!UNAVAIL=return] dns
+networks:       files
+
+protocols:      db files
+services:       db files
+ethers:         db files
+rpc:            db files
+
+netgroup:       nis

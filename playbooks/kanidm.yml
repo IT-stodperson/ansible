@@ -1,0 +1,27 @@
+---
+# Kanidm Playbook — Centralised authentication via Kanidm
+#
+# Installs and configures kanidm-unixd for PAM/NSS identity resolution,
+# deploys configuration files and the service account token, configures
+# nsswitch.conf, and enables the Kanidm services.
+#
+# Prerequisites:
+#   - vault_kanidm_unixd_token must be defined in inventory/group_vars/all/vault.yml
+#   - The Kanidm server must be reachable from the target hosts
+#
+# Usage:
+#   Full run:
+#     ansible-playbook playbooks/kanidm.yml
+#
+#   Limit to a single host:
+#     ansible-playbook playbooks/kanidm.yml --limit wazuh.its.ax
+#
+#   Dry run:
+#     ansible-playbook playbooks/kanidm.yml --check --diff
+
+- name: Kanidm Playbook — Centralised authentication
+  hosts: debian_servers
+  become: true
+  roles:
+    - role: kanidm
+      tags: kanidm
