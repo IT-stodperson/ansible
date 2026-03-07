@@ -1,0 +1,75 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Deploy Kanidm configuration files.
+
+# ===========================================================================
+# CONFIGURATION DIRECTORY
+# ===========================================================================
+
+- name: Ensure Kanidm configuration directory exists
+  ansible.builtin.file:
+    path: "{{ kanidm_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+# ===========================================================================
+# CONFIGURATION FILES
+# ===========================================================================
+
+- name: Deploy Kanidm client configuration
+  ansible.builtin.template:
+    src: config.j2
+    dest: "{{ kanidm_config_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+    trim_blocks: true
+  notify: Restart kanidm-unixd
+
+- name: Deploy Kanidm unixd configuration
+  ansible.builtin.template:
+    src: unixd.j2
+    dest: "{{ kanidm_unixd_config_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+    trim_blocks: true
+  notify: Restart kanidm-unixd
+
+# ===========================================================================
+# SERVICE ACCOUNT TOKEN
+# ===========================================================================
+
+- name: Deploy Kanidm service account token
+  ansible.builtin.copy:
+    content: "{{ kanidm_unixd_token }}"
+    dest: "{{ kanidm_unixd_token_file }}"
+    owner: root
+    group: root
+    mode: '0600'
+  no_log: true
+  notify: Restart kanidm-unixd
+
+# ===========================================================================
+# SYSTEMD OVERRIDE
+# ===========================================================================
+
+- name: Create kanidm-unixd systemd override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/kanidm-unixd.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy kanidm-unixd systemd override
+  ansible.builtin.template:
+    src: kanidm-unixd-override.conf.j2
+    dest: /etc/systemd/system/kanidm-unixd.service.d/override.conf
+    owner: root
+    group: root
+    mode: '0644'
+    trim_blocks: true
+  notify: Restart kanidm-unixd

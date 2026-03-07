@@ -1,0 +1,59 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Install the Kanidm PPA and kanidm-unixd package.
+
+# ===========================================================================
+# APT REPOSITORY
+# ===========================================================================
+
+- name: Ensure APT trusted GPG directory exists
+  ansible.builtin.file:
+    path: /etc/apt/trusted.gpg.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Download Kanidm PPA signing key
+  ansible.builtin.get_url:
+    url: "{{ kanidm_ppa_key_url }}"
+    dest: "{{ kanidm_ppa_key_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Get distribution codename
+  ansible.builtin.command:
+    cmd: lsb_release -cs
+  register: _kanidm_codename
+  changed_when: false
+
+- name: Download Kanidm PPA repository list
+  ansible.builtin.uri:
+    url: "{{ kanidm_ppa_list_url }}"
+    return_content: true
+  register: _kanidm_ppa_list
+
+- name: Install Kanidm PPA repository
+  ansible.builtin.copy:
+    content: |
+      {{ _kanidm_ppa_list.content | regex_search('.*' + _kanidm_codename.stdout + '.*stable.*', multiline=True) }}
+    dest: /etc/apt/sources.list.d/kanidm_ppa.list
+    owner: root
+    group: root
+    mode: '0644'
+  register: _kanidm_repo_added
+
+# ===========================================================================
+# PACKAGE INSTALLATION
+# ===========================================================================
+
+- name: Update APT cache after adding Kanidm PPA
+  ansible.builtin.apt:
+    update_cache: true
+  when: _kanidm_repo_added.changed
+
+- name: Install kanidm-unixd package
+  ansible.builtin.apt:
+    name: "{{ kanidm_package }}"
+    state: present

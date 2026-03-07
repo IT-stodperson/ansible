@@ -1,0 +1,22 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Verify Kanidm Unix daemon connectivity.
+
+- name: Check Kanidm Unix daemon status
+  ansible.builtin.command:
+    cmd: kanidm-unix status
+  register: _kanidm_status
+  changed_when: false
+
+- name: Display Kanidm status
+  ansible.builtin.debug:
+    msg: "{{ _kanidm_status.stdout_lines }}"
+
+- name: Verify Kanidm is online
+  ansible.builtin.assert:
+    that:
+      - "'online' in _kanidm_status.stdout"
+    fail_msg: >-
+      Kanidm Unix daemon is not fully online.
+      Check the service logs with: journalctl -u kanidm-unixd
+    success_msg: Kanidm Unix daemon is online and connected to the server.

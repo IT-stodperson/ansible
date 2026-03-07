@@ -1,0 +1,37 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for kanidm
+
+# =============================================================================
+# Kanidm — Main task entry point
+# =============================================================================
+
+- name: Install Kanidm PPA and packages
+  ansible.builtin.import_tasks: install.yml
+  tags:
+    - kanidm
+    - kanidm_install
+
+- name: Deploy Kanidm configuration
+  ansible.builtin.import_tasks: configure.yml
+  tags:
+    - kanidm
+    - kanidm_configure
+
+- name: Configure NSSwitch for Kanidm
+  ansible.builtin.import_tasks: nsswitch.yml
+  tags:
+    - kanidm
+    - kanidm_nsswitch
+
+- name: Enable and start Kanidm services
+  ansible.builtin.import_tasks: services.yml
+  tags:
+    - kanidm
+    - kanidm_services
+
+- name: Verify Kanidm status
+  ansible.builtin.import_tasks: verify.yml
+  tags:
+    - kanidm
+    - kanidm_verify

@@ -1,0 +1,47 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Systemd hardening override for Kanidm Unix daemon (kanidm-unixd.service) —
+#   restrict capabilities, network families, and kernel interfaces
+#   while preserving PAM/NSS identity resolution.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+[Service]
+# ---------- Capabilities ----------
+# kanidm-unixd needs minimal capabilities:
+#   NET_BIND_SERVICE is NOT needed — it connects outbound only
+CapabilityBoundingSet=
+
+# TCP for HTTPS to Kanidm server, UNIX for the NSS/PAM socket
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateDevices=yes
+PrivateTmp=yes
+RestrictNamespaces=yes
+ProtectHostname=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectKernelLogs=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+ReadWritePaths=/var/cache/kanidm-unixd /var/run/kanidm-unixd

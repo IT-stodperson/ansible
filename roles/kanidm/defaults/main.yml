@@ -1,0 +1,67 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Default variables for the kanidm role.
+# Override these in group_vars/, host_vars/, or at the playbook level.
+
+# ---------------------------------------------------------------------------
+# Kanidm server connection
+# ---------------------------------------------------------------------------
+
+# URI of the Kanidm server
+kanidm_uri: "https://kanidm.its.ax"
+
+# Whether to verify the CA certificate
+kanidm_verify_ca: true
+
+# ---------------------------------------------------------------------------
+# Kanidm Unix Daemon (unixd) configuration
+# ---------------------------------------------------------------------------
+
+# Default shell for Kanidm-provisioned users
+kanidm_default_shell: "/bin/bash"
+
+# How to derive the home directory name
+kanidm_home_alias: "name"
+
+# Attribute used for UID and GID mapping
+kanidm_uid_attr_map: "name"
+kanidm_gid_attr_map: "name"
+
+# Whether to use /etc/skel for new home directories
+kanidm_use_etc_skel: true
+
+# POSIX groups allowed to log in via PAM
+kanidm_pam_allowed_login_groups:
+  - teachers
+
+# Path to the service account token (uses systemd credential)
+kanidm_service_account_token_path: "%d/unixd_token"
+
+# ---------------------------------------------------------------------------
+# Group mapping (Kanidm group -> local group)
+# ---------------------------------------------------------------------------
+
+# Map Kanidm groups to local system groups
+kanidm_group_mappings:
+  - local: sudo
+    with: teachers
+
+# ---------------------------------------------------------------------------
+# Service account token (vault-encrypted)
+# ---------------------------------------------------------------------------
+
+# The token for the Kanidm service account that performs lookups.
+# This must be defined in vault.yml:
+#   vault_kanidm_unixd_token: "<your-token-here>"
+kanidm_unixd_token: "{{ vault_kanidm_unixd_token }}"
+
+# ---------------------------------------------------------------------------
+# NSSwitch configuration
+# ---------------------------------------------------------------------------
+
+# Whether to configure nsswitch.conf for Kanidm
+kanidm_configure_nsswitch: true
+
+# NSSwitch passwd and group sources (Kanidm first, then local)
+kanidm_nsswitch_passwd: "kanidm compat"
+kanidm_nsswitch_group: "kanidm compat"

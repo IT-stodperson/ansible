@@ -1,0 +1,39 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Kanidm Unix daemon (unixd) configuration — local identity resolution
+#   and PAM authentication via Kanidm.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template or inventory variables and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+version = '2'
+
+default_shell = "{{ kanidm_default_shell }}"
+home_alias = "{{ kanidm_home_alias }}"
+uid_attr_map = "{{ kanidm_uid_attr_map }}"
+gid_attr_map = "{{ kanidm_gid_attr_map }}"
+use_etc_skel = {{ kanidm_use_etc_skel | lower }}
+
+[kanidm]
+pam_allowed_login_groups = {{ kanidm_pam_allowed_login_groups | to_json }}
+service_account_token_path = "{{ kanidm_service_account_token_path }}"
+{% for mapping in kanidm_group_mappings %}
+
+[[kanidm.map_group]]
+local = "{{ mapping.local }}"
+with = "{{ mapping.with }}"
+{% endfor %}

@@ -3,10 +3,18 @@
 # Default variables for the user_management role.
 # Override these in group_vars/, host_vars/, or at the playbook level.
 
+# ---------------------------------------------------------------------------
+# Kanidm integration
+# ---------------------------------------------------------------------------
+# When true, user creation and SSH key deployment are skipped because
+# Kanidm handles identity resolution and SSH authorized keys centrally.
+# The group is still ensured to exist for local service accounts.
+user_management_kanidm_enabled: true
+
 # Group that managed users will be added to
 user_management_group: teachers
 
-# List of users to manage
+# List of users to manage (only used when Kanidm is disabled)
 # Each entry requires:
 #   - name:       login username
 #   - ssh_key:    public SSH key string

@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Enable and start Kanidm services.
+
+- name: Enable and start Kanidm services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop: "{{ kanidm_services }}"

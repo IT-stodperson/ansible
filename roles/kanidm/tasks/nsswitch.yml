@@ -1,0 +1,14 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Configure NSSwitch for Kanidm identity resolution.
+
+- name: Deploy nsswitch.conf with Kanidm support
+  ansible.builtin.template:
+    src: nsswitch.conf.j2
+    dest: /etc/nsswitch.conf
+    owner: root
+    group: root
+    mode: '0644'
+    trim_blocks: true
+  when: kanidm_configure_nsswitch
+  notify: Restart kanidm-unixd
