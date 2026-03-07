@@ -1,0 +1,29 @@
+
+        # ====================================================================
+        # Web Guard Chains
+        # ====================================================================
+
+        chain web_guard_v4 {
+                # Drop if >100 concurrent conns from same IPv4 source
+                ct state new add @web_connlimit_v4 { ip saddr ct count over 100 } \
+                        add @web_connlog_v4 { ip saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT WEB connlimit v4] " drop
+
+                # Allow normal new-connection rate per source
+                ct state new add @web_synrate_v4 { ip saddr limit rate 30/second burst 60 packets } accept
+
+                # Over SYN rate: log (throttled) then drop
+                ct state new add @web_synlog_v4 { ip saddr limit rate 1/minute burst 1 packets } log prefix "[NFT WEB synrate v4] "
+                ct state new drop
+        }
+
+        chain web_guard_v6 {
+                ct state new add @web_connlimit_v6 { ip6 saddr ct count over 100 } \
+                        add @web_connlog_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT WEB connlimit v6] " drop
+
+                ct state new add @web_synrate_v6 { ip6 saddr limit rate 30/second burst 60 packets } accept
+
+                ct state new add @web_synlog_v6 { ip6 saddr limit rate 1/minute burst 1 packets } log prefix "[NFT WEB synrate v6] "
+                ct state new drop
+        }

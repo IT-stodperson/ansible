@@ -2,9 +2,9 @@
 ---
 # tasks file for nftables
 #
-# Template lookup order:
-#   1. per_host/{{ inventory_hostname }}.conf.j2  (host-specific)
-#   2. base.conf.j2                                (default ruleset)
+# The base template is always deployed. Host-specific service rules are
+# pulled in automatically via {% include ... ignore missing %} when a
+# matching snippet exists under templates/per_host/<hostname>/.
 
 # ===========================================================================
 # INSTALL
@@ -21,16 +21,9 @@
 # DEPLOY CONFIGURATION
 # ===========================================================================
 
-- name: Check for host-specific nftables template
-  ansible.builtin.stat:
-    path: "{{ role_path }}/templates/per_host/{{ inventory_hostname }}.conf.j2"
-  delegate_to: localhost
-  become: false
-  register: _nft_host_template
-
 - name: Deploy nftables configuration
   ansible.builtin.template:
-    src: "{{ _nft_host_template.stat.exists | ternary('per_host/' + inventory_hostname + '.conf.j2', 'base.conf.j2') }}"
+    src: base.conf.j2
     dest: /etc/nftables.conf
     owner: root
     group: root
