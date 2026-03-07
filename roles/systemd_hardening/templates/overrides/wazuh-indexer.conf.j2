@@ -1,0 +1,63 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Systemd hardening override for wazuh-indexer — restrict capabilities,
+#   filesystem access, and kernel interfaces.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@gymnasium.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+[Service]
+# Drop all capabilities — indexer runs unprivileged
+CapabilityBoundingSet=
+
+# Indexer only listens on localhost (9200/9300)
+IPAddressAllow=localhost
+IPAddressDeny=any
+
+LockPersonality=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateMounts=true
+PrivateTmp=disconnected
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+
+# Data, logs, and configuration directories
+ReadWritePaths=/var/lib/wazuh-indexer /var/log/wazuh-indexer /etc/wazuh-indexer
+
+RemoveIPC=true
+
+# TCP for API and cluster transport, NETLINK for routing, UNIX for internal
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+
+# Indexer uses TCP only — block UDP binding
+SocketBindDeny=ipv4:udp
+SocketBindDeny=ipv6:udp
+
+SystemCallArchitectures=native
+SystemCallFilter=~@aio:EPERM @chown:EPERM @clock:EPERM @cpu-emulation:EPERM @debug:EPERM @keyring:EPERM @memlock:EPERM @module:EPERM @obsolete:EPERM @pkey:EPERM @raw-io:EPERM @reboot:EPERM @sandbox:EPERM @swap:EPERM
+UMask=0027
