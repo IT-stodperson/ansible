@@ -30,7 +30,6 @@ use_etc_skel = {{ kanidm_use_etc_skel | lower }}
 
 [kanidm]
 pam_allowed_login_groups = {{ kanidm_pam_allowed_login_groups | to_json }}
-service_account_token_path = "{{ kanidm_service_account_token_path }}"
 {% for mapping in kanidm_group_mappings %}
 
 [[kanidm.map_group]]
