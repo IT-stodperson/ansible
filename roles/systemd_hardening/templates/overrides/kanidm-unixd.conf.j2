@@ -22,26 +22,5 @@
 # -----------------------------------------------------------------------------
 
 [Service]
-# ---------- Capabilities ----------
-# kanidm-unixd needs minimal capabilities:
-#   NET_BIND_SERVICE is NOT needed — it connects outbound only
-CapabilityBoundingSet=
-
-# TCP for HTTPS to Kanidm server, UNIX for the NSS/PAM socket
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-
-NoNewPrivileges=yes
-ProtectSystem=strict
-ProtectHome=yes
-PrivateDevices=yes
-PrivateTmp=yes
-RestrictNamespaces=yes
-ProtectHostname=yes
-ProtectClock=yes
-ProtectControlGroups=yes
-ProtectKernelLogs=yes
-ProtectKernelTunables=yes
-ProtectKernelModules=yes
-RestrictRealtime=yes
-SystemCallArchitectures=native
-ReadWritePaths=/var/cache/kanidm-unixd /var/run/kanidm-unixd
+LoadCredential=unixd_token:/etc/kanidm/unixd_token
+Environment=KANIDM_SERVICE_ACCOUNT_TOKEN_PATH=%d/unixd_token
