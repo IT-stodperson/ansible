@@ -34,9 +34,6 @@ kanidm_use_etc_skel: true
 kanidm_pam_allowed_login_groups:
   - teachers
 
-# Path to the service account token (uses systemd credential)
-kanidm_service_account_token_path: "%d/unixd_token"
-
 # ---------------------------------------------------------------------------
 # Group mapping (Kanidm group -> local group)
 # ---------------------------------------------------------------------------
