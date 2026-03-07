@@ -4,3 +4,4 @@
 
                 # Wazuh Agent/Enrollment/API from management network → guard chain
                 ip saddr @wazuh_agent_allowed_v4 tcp dport $WAZUH_AGENT_PORTS ct state new jump wazuh_agent_guard_v4
+
