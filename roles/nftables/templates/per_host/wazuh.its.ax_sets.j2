@@ -1,0 +1,48 @@
+
+        # ====================================================================
+        # Wazuh Dashboard Access Control Sets
+        # ====================================================================
+        # Teacher + Teacher VPN networks for HTTPS dashboard access
+
+        set wazuh_dash_allowed_v4 {
+                type ipv4_addr
+                flags interval
+                elements = { {{ nft_ssh_teacher_v4 | join(', ') }} }
+        }
+
+        set wazuh_dash_allowed_v6 {
+                type ipv6_addr
+                flags interval
+                elements = { {{ nft_ssh_teacher_v6 | join(', ') }} }
+        }
+
+        # Wazuh Dashboard: per-IP SYN rate
+        set wazuh_dash_synrate_v4 { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 10s; }
+        set wazuh_dash_synrate_v6 { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 10s; }
+        set wazuh_dash_synlog_v4  { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set wazuh_dash_synlog_v6  { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # Wazuh Dashboard: per-IP concurrent connections
+        set wazuh_dash_connlimit_v4 { type ipv4_addr; flags dynamic; size 65535; }
+        set wazuh_dash_connlimit_v6 { type ipv6_addr; flags dynamic; size 65535; }
+        set wazuh_dash_connlog_v4   { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set wazuh_dash_connlog_v6   { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # ====================================================================
+        # Wazuh Agent/Enrollment Access Control Sets
+        # ====================================================================
+        # Management network (10.0.99.0/24) for agent communication
+
+        set wazuh_agent_allowed_v4 {
+                type ipv4_addr
+                flags interval
+                elements = { 10.0.99.0/24 }
+        }
+
+        # Wazuh Agent: per-IP new connection rate
+        set wazuh_agent_rate_v4 { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1h; }
+        set wazuh_agent_log_v4  { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # Wazuh Agent: per-IP concurrent connections
+        set wazuh_agent_connlimit_v4 { type ipv4_addr; flags dynamic; size 65535; }
+        set wazuh_agent_connlog_v4   { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
