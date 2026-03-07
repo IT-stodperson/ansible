@@ -45,6 +45,8 @@ AllowGroups teachers ansible
 
 AllowAgentForwarding no
 AllowTcpForwarding no
+AuthorizedKeysCommand /usr/sbin/kanidm_ssh_authorizedkeys %u
+AuthorizedKeysCommandUser nobody
 Banner /etc/issue.net
 ClientAliveCountMax 2
 ClientAliveInterval 60
