@@ -36,8 +36,8 @@ MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
 # Access Control
 # ============================================================================
 
-# Only allow groups 'teachers' and 'ansible' to connect
-AllowGroups teachers ansible
+# Only allow members of the listed groups to connect
+AllowGroups {{ ssh_allow_groups | join(' ') }}
 
 # ============================================================================
 # Security Options
