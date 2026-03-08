@@ -33,6 +33,7 @@ kanidm_use_etc_skel: true
 # POSIX groups allowed to log in via PAM
 kanidm_pam_allowed_login_groups:
   - teachers
+  - ansible
 
 # ---------------------------------------------------------------------------
 # Group mapping (Kanidm group -> local group)

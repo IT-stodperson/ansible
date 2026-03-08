@@ -4,3 +4,8 @@
 # Override these in group_vars/, host_vars/, or at the playbook level.
 
 ssh_moduli_min_bits: 3071
+
+# Groups allowed to connect via SSH
+ssh_allow_groups:
+  - teachers
+  - ansible
