@@ -19,4 +19,6 @@
 - name: Enable pwquality PAM profile
   ansible.builtin.command:
     cmd: pam-auth-update --enable pwquality
+  environment:
+    DEBIAN_FRONTEND: noninteractive
   changed_when: false

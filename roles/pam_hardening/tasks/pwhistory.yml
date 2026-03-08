@@ -20,4 +20,6 @@
 - name: Enable pwhistory PAM profile
   ansible.builtin.command:
     cmd: pam-auth-update --enable pwhistory
+  environment:
+    DEBIAN_FRONTEND: noninteractive
   changed_when: false

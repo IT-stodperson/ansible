@@ -29,6 +29,8 @@
 - name: Enable faillock PAM profiles
   ansible.builtin.command:
     cmd: "pam-auth-update --enable {{ item }}"
+  environment:
+    DEBIAN_FRONTEND: noninteractive
   loop:
     - faillock
     - faillock_notify

@@ -12,4 +12,6 @@
 - name: Enable unix PAM profile
   ansible.builtin.command:
     cmd: pam-auth-update --enable unix
+  environment:
+    DEBIAN_FRONTEND: noninteractive
   changed_when: false
