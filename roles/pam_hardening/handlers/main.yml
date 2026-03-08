@@ -4,4 +4,6 @@
 - name: Rebuild PAM configuration
   ansible.builtin.command:
     cmd: pam-auth-update --force
+  environment:
+    DEBIAN_FRONTEND: noninteractive
   listen: Rebuild PAM configuration
