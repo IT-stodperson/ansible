@@ -1,0 +1,187 @@
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Dynamic MOTD script for Ansible control host.
+#   Displays system info and instructions for running playbooks.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# Colors
+readonly BOLD=$'\033[1m'
+readonly RED=$'\033[0;31m'
+readonly GREEN=$'\033[0;32m'
+readonly YELLOW=$'\033[0;33m'
+readonly CYAN=$'\033[0;36m'
+readonly NC=$'\033[0m'
+
+# ── Temp file cleanup ───────────────────────────────────────────────
+
+MOTD_TMPDIR=$(mktemp -d /tmp/.motd.XXXXXX)
+trap 'rm -rf "$MOTD_TMPDIR"' EXIT
+
+# ── Kick off slow jobs in parallel ──────────────────────────────────
+
+# Failed login attempts (last 24 hours)
+if command -v journalctl &>/dev/null; then
+    journalctl _COMM=sshd --since "24 hours ago" --no-pager -q 2>/dev/null \
+        | grep -icE "failed password|authentication failure" \
+        > "$MOTD_TMPDIR/failed" &
+    pid_journal=$!
+elif [[ -f /var/log/auth.log ]]; then
+    grep -icE "failed password|authentication failure" /var/log/auth.log \
+        > "$MOTD_TMPDIR/failed" 2>/dev/null &
+    pid_journal=$!
+else
+    echo 0 > "$MOTD_TMPDIR/failed"
+    pid_journal=""
+fi
+
+# ── Collect fast data while background jobs run ─────────────────────
+
+HOSTNAME=$(hostname)
+KERNEL=$(uname -r)
+UPTIME=$(uptime -p | sed 's/^up //')
+LOAD=$(awk '{printf "%s, %s, %s", $1, $2, $3}' /proc/loadavg)
+CPU_MODEL=$(awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo)
+CPU_CORES=$(nproc 2>/dev/null)
+PROCESSES=$(find /proc -maxdepth 1 -name '[0-9]*' -type d 2>/dev/null | wc -l)
+MEMORY=$(free -m | awk 'NR==2{printf "Used: %dMB (%.1f%%) | Available: %dMB | Total: %dMB", $3, $3*100/$2, $7, $2}')
+IP=$(hostname -I | awk '{print $1}')
+
+USERS=$(who 2>/dev/null | wc -l)
+
+# ── Package updates (from cache) ───────────────────────────────────
+
+UPDATES=0
+SECURITY=0
+if [[ -f /run/motd-update-cache ]]; then
+    read -r UPDATES SECURITY < /run/motd-update-cache
+    UPDATES=${UPDATES:-0}
+    SECURITY=${SECURITY:-0}
+fi
+
+if [[ "$UPDATES" -eq 0 ]]; then
+    UPDATE_STATUS="${GREEN}System is up to date${NC}"
+elif [[ "$SECURITY" -gt 0 ]]; then
+    UPDATE_STATUS="${RED}${UPDATES} updates (${SECURITY} security) available${NC}"
+else
+    UPDATE_STATUS="${YELLOW}${UPDATES} updates available${NC}"
+fi
+
+REBOOT_REQUIRED=""
+if [[ -f /run/reboot-required ]]; then
+    REBOOT_REQUIRED="${RED}REBOOT REQUIRED${NC}"
+fi
+
+# ── Wait for background jobs and collect results ────────────────────
+
+[[ -n "$pid_journal" ]] && wait "$pid_journal"
+
+# Failed logins
+FAILED_LOGINS=$(<"$MOTD_TMPDIR/failed")
+FAILED_LOGINS=${FAILED_LOGINS:-0}
+
+if [[ "$FAILED_LOGINS" -gt 999 ]]; then
+    FAILED_LOGIN_DISPLAY="${RED}999+${NC}"
+elif [[ "$FAILED_LOGINS" -gt 10 ]]; then
+    FAILED_LOGIN_DISPLAY="${RED}${FAILED_LOGINS}${NC}"
+elif [[ "$FAILED_LOGINS" -gt 0 ]]; then
+    FAILED_LOGIN_DISPLAY="${YELLOW}${FAILED_LOGINS}${NC}"
+else
+    FAILED_LOGIN_DISPLAY="${GREEN}0${NC}"
+fi
+
+# ── Output ──────────────────────────────────────────────────────────
+
+print_separator() {
+    printf "\n%s%s─────────────────────────────────────────────────────────────────────%s\n\n" \
+        "$BOLD" "$CYAN" "$NC"
+}
+
+printf "\n"
+printf "%s%s╔══════════════════════════════════════════════════════════════╗%s\n" "$BOLD" "$CYAN" "$NC"
+printf "%s%s║                      SYSTEM INFORMATION                      ║%s\n" "$BOLD" "$CYAN" "$NC"
+printf "%s%s╚══════════════════════════════════════════════════════════════╝%s\n" "$BOLD" "$CYAN" "$NC"
+printf "\n"
+
+printf "%sServer:%s       %s\n" "$BOLD" "$NC" "$HOSTNAME"
+printf "%sRole:%s         %sAnsible Control Host%s\n" "$BOLD" "$NC" "$YELLOW" "$NC"
+printf "%sIP Address:%s   %s\n" "$BOLD" "$NC" "$IP"
+printf "%sKernel:%s       %s\n" "$BOLD" "$NC" "$KERNEL"
+
+print_separator
+
+printf "%sUptime:%s       %s\n" "$BOLD" "$NC" "$UPTIME"
+printf "%sLoad Average:%s %s\n\n" "$BOLD" "$NC" "$LOAD"
+
+printf "%sCPU:%s          %s (%s cores)\n" "$BOLD" "$NC" "$CPU_MODEL" "$CPU_CORES"
+printf "%sProcesses:%s    %s running\n\n" "$BOLD" "$NC" "$PROCESSES"
+
+printf "%sMemory:%s       %s\n\n" "$BOLD" "$NC" "$MEMORY"
+
+printf "%sDisk Usage:%s\n" "$BOLD" "$NC"
+df -hl 2>/dev/null | awk -v red="$RED" -v yellow="$YELLOW" -v green="$GREEN" -v nc="$NC" '
+NR > 1 && $1 ~ /^\/dev\// {
+    usage_raw = $5
+    gsub(/%/, "", usage_raw)
+    usage = usage_raw + 0
+
+    if (usage >= 90)
+        color = red
+    else if (usage >= 80)
+        color = yellow
+    else
+        color = green
+
+    printf "  %-20s Used: %5s (%s%3d%%%s) | Free: %5s | Total: %5s\n",
+            $6, $3, color, usage, nc, $4, $2
+}'
+
+printf "\n%sUsers:%s        %s logged in\n" "$BOLD" "$NC" "$USERS"
+printf "%sSecurity:%s     %s failed login attempts (24h)\n" "$BOLD" "$NC" "$FAILED_LOGIN_DISPLAY"
+printf "%sUpdates:%s      %b\n" "$BOLD" "$NC" "$UPDATE_STATUS"
+
+if [[ -n "$REBOOT_REQUIRED" ]]; then
+    printf "%sStatus:%s       %b\n" "$BOLD" "$NC" "$REBOOT_REQUIRED"
+fi
+
+print_separator
+
+printf "%s%s╔══════════════════════════════════════════════════════════════╗%s\n" "$BOLD" "$CYAN" "$NC"
+printf "%s%s║                     ANSIBLE USAGE GUIDE                      ║%s\n" "$BOLD" "$CYAN" "$NC"
+printf "%s%s╚══════════════════════════════════════════════════════════════╝%s\n" "$BOLD" "$CYAN" "$NC"
+printf "\n"
+
+printf "  All playbooks must be run as the %sansible%s user.\n" "$BOLD" "$NC"
+printf "  Switch to it with:\n\n"
+printf "    %s$ su - ansible%s\n\n" "$CYAN" "$NC"
+
+printf "  The Ansible repository is located at:\n\n"
+printf "    %shttps://github.com/IT-stodperson/ansible%s\n\n" "$CYAN" "$NC"
+
+printf "  Common commands:\n\n"
+printf "    %s# Run a playbook%s\n" "$YELLOW" "$NC"
+printf "    %s$ ansible-playbook playbooks/<playbook>.yml%s\n\n" "$CYAN" "$NC"
+printf "    %s# Run against a specific host%s\n" "$YELLOW" "$NC"
+printf "    %s$ ansible-playbook playbooks/<playbook>.yml --limit <host>%s\n\n" "$CYAN" "$NC"
+printf "    %s# Dry run (check mode)%s\n" "$YELLOW" "$NC"
+printf "    %s$ ansible-playbook playbooks/<playbook>.yml --check --diff%s\n\n" "$CYAN" "$NC"
+printf "    %s# Pull latest changes from the repo%s\n" "$YELLOW" "$NC"
+printf "    %s$ git pull%s\n" "$CYAN" "$NC"
+
+print_separator
