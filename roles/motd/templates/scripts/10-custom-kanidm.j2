@@ -1,0 +1,243 @@
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Dynamic MOTD script for Kanidm identity server.
+#   Displays system info, Docker container health, and connections.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+# Colors
+readonly BOLD=$'\033[1m'
+readonly RED=$'\033[0;31m'
+readonly GREEN=$'\033[0;32m'
+readonly YELLOW=$'\033[0;33m'
+readonly CYAN=$'\033[0;36m'
+readonly NC=$'\033[0m'
+
+# ── Temp file cleanup ───────────────────────────────────────────────
+
+MOTD_TMPDIR=$(mktemp -d /tmp/.motd.XXXXXX)
+trap 'rm -rf "$MOTD_TMPDIR"' EXIT
+
+# ── Kick off slow jobs in parallel ──────────────────────────────────
+
+# Failed login attempts (last 24 hours)
+if command -v journalctl &>/dev/null; then
+    journalctl _COMM=sshd --since "24 hours ago" --no-pager -q 2>/dev/null \
+        | grep -icE "failed password|authentication failure" \
+        > "$MOTD_TMPDIR/failed" &
+    pid_journal=$!
+elif [[ -f /var/log/auth.log ]]; then
+    grep -icE "failed password|authentication failure" /var/log/auth.log \
+        > "$MOTD_TMPDIR/failed" 2>/dev/null &
+    pid_journal=$!
+else
+    echo 0 > "$MOTD_TMPDIR/failed"
+    pid_journal=""
+fi
+
+# Service health — SSH via systemctl
+systemctl is-active ssh 2>/dev/null \
+    > "$MOTD_TMPDIR/services" &
+pid_svc=$!
+
+# Docker container health
+pid_docker=""
+if command -v docker &>/dev/null; then
+    docker ps --format '{{ '{{' }}.Names{{ '}}' }}\t{{ '{{' }}.Status{{ '}}' }}' 2>/dev/null \
+        > "$MOTD_TMPDIR/docker" &
+    pid_docker=$!
+fi
+
+# ── Collect fast data while background jobs run ─────────────────────
+
+HOSTNAME=$(hostname)
+KERNEL=$(uname -r)
+UPTIME=$(uptime -p | sed 's/^up //')
+LOAD=$(awk '{printf "%s, %s, %s", $1, $2, $3}' /proc/loadavg)
+CPU_MODEL=$(awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo)
+CPU_CORES=$(nproc 2>/dev/null)
+PROCESSES=$(find /proc -maxdepth 1 -name '[0-9]*' -type d 2>/dev/null | wc -l)
+MEMORY=$(free -m | awk 'NR==2{printf "Used: %dMB (%.1f%%) | Available: %dMB | Total: %dMB", $3, $3*100/$2, $7, $2}')
+IP=$(hostname -I | awk '{print $1}')
+
+USERS=$(who 2>/dev/null | wc -l)
+
+# Network connections — single ss call
+read -r SSH_CONN HTTPS_CONN LDAPS_CONN <<< "$(ss -Htn state established | awk '
+    $3 ~ /:22$/  {a++}
+    $3 ~ /:443$/ {b++}
+    $3 ~ /:636$/ {c++}
+    END {print a+0, b+0, c+0}')"
+
+# ── Package updates (from cache) ───────────────────────────────────
+
+UPDATES=0
+SECURITY=0
+if [[ -f /run/motd-update-cache ]]; then
+    read -r UPDATES SECURITY < /run/motd-update-cache
+    UPDATES=${UPDATES:-0}
+    SECURITY=${SECURITY:-0}
+fi
+
+if [[ "$UPDATES" -eq 0 ]]; then
+    UPDATE_STATUS="${GREEN}System is up to date${NC}"
+elif [[ "$SECURITY" -gt 0 ]]; then
+    UPDATE_STATUS="${RED}${UPDATES} updates (${SECURITY} security) available${NC}"
+else
+    UPDATE_STATUS="${YELLOW}${UPDATES} updates available${NC}"
+fi
+
+REBOOT_REQUIRED=""
+if [[ -f /run/reboot-required ]]; then
+    REBOOT_REQUIRED="${RED}REBOOT REQUIRED${NC}"
+fi
+
+# ── Wait for background jobs and collect results ────────────────────
+
+[[ -n "$pid_journal" ]] && wait "$pid_journal"
+wait "$pid_svc"
+[[ -n "$pid_docker" ]] && wait "$pid_docker"
+
+# Failed logins
+FAILED_LOGINS=$(<"$MOTD_TMPDIR/failed")
+FAILED_LOGINS=${FAILED_LOGINS:-0}
+
+if [[ "$FAILED_LOGINS" -gt 999 ]]; then
+    FAILED_LOGIN_DISPLAY="${RED}999+${NC}"
+elif [[ "$FAILED_LOGINS" -gt 10 ]]; then
+    FAILED_LOGIN_DISPLAY="${RED}${FAILED_LOGINS}${NC}"
+elif [[ "$FAILED_LOGINS" -gt 0 ]]; then
+    FAILED_LOGIN_DISPLAY="${YELLOW}${FAILED_LOGINS}${NC}"
+else
+    FAILED_LOGIN_DISPLAY="${GREEN}0${NC}"
+fi
+
+# Service health
+fmt_svc() {
+    [[ "$1" == "active" ]] \
+        && printf "%s●%s Running" "$GREEN" "$NC" \
+        || printf "%s●%s Stopped" "$RED" "$NC"
+}
+
+mapfile -t SVC_STATUS < "$MOTD_TMPDIR/services"
+SSH_HEALTH=$(fmt_svc "${SVC_STATUS[0]}")
+
+# Docker container health
+fmt_container() {
+    local name="$1"
+    local status
+    if [[ -s "$MOTD_TMPDIR/docker" ]]; then
+        status=$(awk -F'\t' -v n="$name" '$1 == n {print $2}' "$MOTD_TMPDIR/docker")
+    fi
+    if [[ -z "$status" ]]; then
+        printf "%s●%s Not found" "$RED" "$NC"
+    elif [[ "$status" == *"Up"* ]]; then
+        printf "%s●%s %s" "$GREEN" "$NC" "$status"
+    else
+        printf "%s●%s %s" "$RED" "$NC" "$status"
+    fi
+}
+
+KANIDM_SERVER_HEALTH=$(fmt_container "kanidm-server")
+KANIDM_RADIUS_HEALTH=$(fmt_container "kanidm-radius")
+
+# Docker images
+DOCKER_IMAGES=""
+if command -v docker &>/dev/null; then
+    DOCKER_IMAGES=$(docker images --format '{{ '{{' }}.Repository{{ '}}' }}:{{ '{{' }}.Tag{{ '}}' }}\t{{ '{{' }}.Size{{ '}}' }}' 2>/dev/null \
+        | grep -i kanidm | sort)
+fi
+
+# ── Output ──────────────────────────────────────────────────────────
+
+print_separator() {
+    printf "\n%s%s─────────────────────────────────────────────────────────────────────%s\n\n" \
+        "$BOLD" "$CYAN" "$NC"
+}
+
+printf "\n"
+printf "%s%s╔══════════════════════════════════════════════════════════════╗%s\n" "$BOLD" "$CYAN" "$NC"
+printf "%s%s║                      SYSTEM INFORMATION                      ║%s\n" "$BOLD" "$CYAN" "$NC"
+printf "%s%s╚══════════════════════════════════════════════════════════════╝%s\n" "$BOLD" "$CYAN" "$NC"
+printf "\n"
+
+printf "%sServer:%s       %s\n" "$BOLD" "$NC" "$HOSTNAME"
+printf "%sRole:%s         %sKanidm Identity Server%s\n" "$BOLD" "$NC" "$YELLOW" "$NC"
+printf "%sIP Address:%s   %s\n" "$BOLD" "$NC" "$IP"
+printf "%sKernel:%s       %s\n" "$BOLD" "$NC" "$KERNEL"
+
+print_separator
+
+printf "%sUptime:%s       %s\n" "$BOLD" "$NC" "$UPTIME"
+printf "%sLoad Average:%s %s\n\n" "$BOLD" "$NC" "$LOAD"
+
+printf "%sCPU:%s          %s (%s cores)\n" "$BOLD" "$NC" "$CPU_MODEL" "$CPU_CORES"
+printf "%sProcesses:%s    %s running\n\n" "$BOLD" "$NC" "$PROCESSES"
+
+printf "%sMemory:%s       %s\n\n" "$BOLD" "$NC" "$MEMORY"
+
+printf "%sDisk Usage:%s\n" "$BOLD" "$NC"
+df -hl 2>/dev/null | awk -v red="$RED" -v yellow="$YELLOW" -v green="$GREEN" -v nc="$NC" '
+NR > 1 && $1 ~ /^\/dev\// {
+    usage_raw = $5
+    gsub(/%/, "", usage_raw)
+    usage = usage_raw + 0
+
+    if (usage >= 90)
+        color = red
+    else if (usage >= 80)
+        color = yellow
+    else
+        color = green
+
+    printf "  %-20s Used: %5s (%s%3d%%%s) | Free: %5s | Total: %5s\n",
+            $6, $3, color, usage, nc, $4, $2
+}'
+
+printf "\n%sUsers:%s        %s logged in\n" "$BOLD" "$NC" "$USERS"
+printf "%sSecurity:%s     %s failed login attempts (24h)\n" "$BOLD" "$NC" "$FAILED_LOGIN_DISPLAY"
+printf "%sUpdates:%s      %b\n" "$BOLD" "$NC" "$UPDATE_STATUS"
+
+if [[ -n "$REBOOT_REQUIRED" ]]; then
+    printf "%sStatus:%s       %b\n" "$BOLD" "$NC" "$REBOOT_REQUIRED"
+fi
+
+print_separator
+
+printf "%sServices:%s\n" "$BOLD" "$NC"
+printf "  SSH:               %s\n\n" "$SSH_HEALTH"
+
+printf "%sDocker Containers:%s\n" "$BOLD" "$NC"
+printf "  kanidm-server:     %s\n" "$KANIDM_SERVER_HEALTH"
+printf "  kanidm-radius:     %s\n\n" "$KANIDM_RADIUS_HEALTH"
+
+if [[ -n "$DOCKER_IMAGES" ]]; then
+    printf "%sDocker Images:%s\n" "$BOLD" "$NC"
+    while IFS=$'\t' read -r img size; do
+        printf "  %-35s %s\n" "$img" "$size"
+    done <<< "$DOCKER_IMAGES"
+    printf "\n"
+fi
+
+printf "%sConnections:%s\n" "$BOLD" "$NC"
+printf "  SSH (:22):         %s active\n" "$SSH_CONN"
+printf "  Web GUI (:443):    %s active\n" "$HTTPS_CONN"
+printf "  LDAPs (:636):      %s active\n" "$LDAPS_CONN"
+
+print_separator

@@ -5,6 +5,7 @@
 #   ansible-playbook playbooks/motd-deploy.yml --limit wazuh.its.ax -e motd_script=10-custom-wazuh
 #   ansible-playbook playbooks/motd-deploy.yml --limit webftp.its.ax -e motd_script=10-custom-webftp
 #   ansible-playbook playbooks/motd-deploy.yml --limit ansible.its.ax -e motd_script=10-custom-ansible
+#   ansible-playbook playbooks/motd-deploy.yml --limit kanidm.its.ax -e motd_script=10-custom-kanidm
 #
 # MOTD templates are stored in: roles/motd/templates/scripts/
 # Named as: <script-name>.j2 (e.g., 10-custom-wazuh.j2)
