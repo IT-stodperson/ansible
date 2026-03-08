@@ -1,0 +1,58 @@
+
+        # ====================================================================
+        # Kanidm Web GUI Access Control Sets
+        # ====================================================================
+        # Teacher + Student networks for HTTPS web GUI access
+
+        set kanidm_web_allowed_v4 {
+                type ipv4_addr
+                flags interval
+                elements = { {{ (nft_ssh_teacher_v4 + nft_ssh_student_v4) | join(', ') }} }
+        }
+
+        set kanidm_web_allowed_v6 {
+                type ipv6_addr
+                flags interval
+                elements = { {{ (nft_ssh_teacher_v6 + nft_ssh_student_v6) | join(', ') }} }
+        }
+
+        # Kanidm Web GUI: per-IP SYN rate
+        set kanidm_web_synrate_v4 { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 10s; }
+        set kanidm_web_synrate_v6 { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 10s; }
+        set kanidm_web_synlog_v4  { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set kanidm_web_synlog_v6  { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # Kanidm Web GUI: per-IP concurrent connections
+        set kanidm_web_connlimit_v4 { type ipv4_addr; flags dynamic; size 65535; }
+        set kanidm_web_connlimit_v6 { type ipv6_addr; flags dynamic; size 65535; }
+        set kanidm_web_connlog_v4   { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set kanidm_web_connlog_v6   { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # ====================================================================
+        # Kanidm LDAPs Access Control Sets
+        # ====================================================================
+        # Management network for LDAP communication
+
+        set kanidm_ldaps_allowed_v4 {
+                type ipv4_addr
+                flags interval
+                elements = { 10.0.99.0/24 }
+        }
+
+        set kanidm_ldaps_allowed_v6 {
+                type ipv6_addr
+                flags interval
+                elements = { 2a00:5500:c00a:99::/64 }
+        }
+
+        # Kanidm LDAPs: per-IP new connection rate
+        set kanidm_ldaps_rate_v4 { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1h; }
+        set kanidm_ldaps_rate_v6 { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1h; }
+        set kanidm_ldaps_log_v4  { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set kanidm_ldaps_log_v6  { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # Kanidm LDAPs: per-IP concurrent connections
+        set kanidm_ldaps_connlimit_v4 { type ipv4_addr; flags dynamic; size 65535; }
+        set kanidm_ldaps_connlimit_v6 { type ipv6_addr; flags dynamic; size 65535; }
+        set kanidm_ldaps_connlog_v4   { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set kanidm_ldaps_connlog_v6   { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }

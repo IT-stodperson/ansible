@@ -1,0 +1,7 @@
+
+                # Kanidm Web GUI (HTTPS) from teacher + student networks → guard chain
+                ip saddr @kanidm_web_allowed_v4 tcp dport $KANIDM_WEB_PORT tcp flags & (fin|syn|rst|ack) == syn ct state new jump kanidm_web_guard_v4
+
+                # Kanidm LDAPs from management network → guard chain
+                ip saddr @kanidm_ldaps_allowed_v4 tcp dport $KANIDM_LDAPS_PORT ct state new jump kanidm_ldaps_guard_v4
+
