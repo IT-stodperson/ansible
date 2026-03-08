@@ -54,25 +54,22 @@ set -o noclobber
 # HISTORY SETTINGS
 # ============================================================================
 
-# History file size
-export HISTSIZE=10000
-export HISTFILESIZE=10000
-
-# Don't save duplicate commands or commands starting with a space
-export HISTCONTROL=ignoreboth
-
-# Add timestamps to history entries
-export HISTTIMEFORMAT="%F %T "
-
-# Exclude sensitive and trivial commands from history
-export HISTIGNORE="ls:ll:la:l:cd:pwd:clear:exit:history:bg:fg"
-
 # Append to history instead of overwriting (important with multiple sessions)
 shopt -s histappend
 
-# Make history settings immutable for non-privileged users
-if [[ "${EUID}" -ne 0 ]] && ! id -nG 2>/dev/null | grep -qw sudo; then
-    readonly HISTCONTROL HISTIGNORE HISTTIMEFORMAT HISTSIZE HISTFILESIZE
+# History settings — only set if not already readonly (avoids errors when
+# profile.d runs before .bashrc which may also set these variables)
+if ! readonly -p 2>/dev/null | grep -q 'declare -r HISTSIZE='; then
+    export HISTSIZE=10000
+    export HISTFILESIZE=10000
+    export HISTCONTROL=ignoreboth
+    export HISTTIMEFORMAT="%F %T "
+    export HISTIGNORE="ls:ll:la:l:cd:pwd:clear:exit:history:bg:fg"
+
+    # Make history settings immutable for non-privileged users
+    if [[ "${EUID}" -ne 0 ]] && ! id -nG 2>/dev/null | grep -qw sudo; then
+        readonly HISTCONTROL HISTIGNORE HISTTIMEFORMAT HISTSIZE HISTFILESIZE
+    fi
 fi
 
 # ============================================================================
