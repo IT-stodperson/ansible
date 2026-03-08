@@ -46,3 +46,18 @@
                         log prefix "[NFT KANIDM-LDAPS ratelimit v4] "
                 drop
         }
+
+        chain kanidm_ldaps_guard_v6 {
+                # Drop if >50 concurrent LDAP connections from same source
+                add @kanidm_ldaps_connlimit_v6 { ip6 saddr ct count over 50 } \
+                        add @kanidm_ldaps_connlog_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT KANIDM-LDAPS connlimit v6] " drop
+
+                # Per-IP new-connection rate limit
+                add @kanidm_ldaps_rate_v6 { ip6 saddr limit rate 30/minute burst 10 packets } accept
+
+                # Over rate: throttled log then drop
+                add @kanidm_ldaps_log_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT KANIDM-LDAPS ratelimit v6] "
+                drop
+        }
