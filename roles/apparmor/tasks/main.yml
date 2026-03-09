@@ -23,6 +23,14 @@
   register: aa_enforce_result
   changed_when: "'Setting' in aa_enforce_result.stdout"
 
+- name: Set specified profiles to complain mode
+  ansible.builtin.command:
+    cmd: "aa-complain {{ item }}"
+  loop: "{{ apparmor_complain_profiles }}"
+  when: apparmor_complain_profiles | length > 0
+  register: aa_complain_result
+  changed_when: "'Setting' in aa_complain_result.stdout"
+
 - name: Check that AppArmor is not disabled in GRUB defaults
   ansible.builtin.shell:
     cmd: |

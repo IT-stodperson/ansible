@@ -1,0 +1,8 @@
+#SPDX-License-Identifier: MIT-0
+---
+# host_vars for kanidm.its.ax
+
+# The runc AppArmor profile blocks libseccomp.so.2 which prevents
+# Docker containers from starting. Set it to complain mode.
+apparmor_complain_profiles:
+  - runc

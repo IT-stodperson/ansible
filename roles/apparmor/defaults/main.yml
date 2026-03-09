@@ -1,3 +1,7 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # defaults file for apparmor
+
+# List of AppArmor profiles to set to complain mode after enforcing all.
+# Useful when a profile is too restrictive for a specific service (e.g. runc for Docker).
+apparmor_complain_profiles: []
