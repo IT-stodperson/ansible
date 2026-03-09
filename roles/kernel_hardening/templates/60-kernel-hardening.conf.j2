@@ -57,10 +57,10 @@ kernel.sysrq = 0
 kernel.unprivileged_bpf_disabled = 1
 
 # Prevent unprivileged users from creating user namespaces
-kernel.unprivileged_userns_clone = 0
+kernel.unprivileged_userns_clone = {{ sysctl_unprivileged_userns_clone }}
 
 # Restrict ptrace scope (3 = no processes can be traced)
-kernel.yama.ptrace_scope = 3
+kernel.yama.ptrace_scope = {{ sysctl_ptrace_scope }}
 
 # Harden BPF JIT compiler against JIT spraying attacks
 net.core.bpf_jit_harden = 2
@@ -105,11 +105,11 @@ net.ipv4.icmp_ignore_bogus_error_responses = 1
 # ==============================================================================
 
 # Disable IP forwarding (this server is not a router)
-net.ipv4.conf.all.forwarding = 0
-net.ipv4.conf.default.forwarding = 0
-net.ipv4.ip_forward = 0
-net.ipv6.conf.all.forwarding = 0
-net.ipv6.conf.default.forwarding = 0
+net.ipv4.conf.all.forwarding = {{ sysctl_ip_forward }}
+net.ipv4.conf.default.forwarding = {{ sysctl_ip_forward }}
+net.ipv4.ip_forward = {{ sysctl_ip_forward }}
+net.ipv6.conf.all.forwarding = {{ sysctl_ip6_forward }}
+net.ipv6.conf.default.forwarding = {{ sysctl_ip6_forward }}
 
 # ==============================================================================
 # NETWORK - LOGGING & PROTECTION
