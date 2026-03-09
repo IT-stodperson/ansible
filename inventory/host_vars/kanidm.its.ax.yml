@@ -6,3 +6,31 @@
 # Docker containers from starting. Set it to complain mode.
 apparmor_complain_profiles:
   - runc
+
+# Docker requires overlayfs for its storage driver.
+# Override the default blacklisted_modules list to remove overlayfs.
+blacklisted_modules:
+  - { name: afs, comment: "Andrew File System" }
+  - { name: atm, comment: "Asynchronous Transfer Mode" }
+  - { name: can, comment: "Controller Area Network" }
+  - { name: ceph, comment: "Ceph filesystem" }
+  - { name: cifs, comment: "Common Internet File System (SMB/CIFS)" }
+  - { name: cramfs, comment: "Compressed ROM filesystem" }
+  - { name: dccp, comment: "Datagram Congestion Control Protocol" }
+  - { name: exfat, comment: "exFAT filesystem" }
+  - { name: freevxfs, comment: "VERITAS File System" }
+  - { name: fscache, comment: "Filesystem caching" }
+  - { name: fuse, comment: "Filesystem in Userspace" }
+  - { name: gfs2, comment: "Global File System 2" }
+  - { name: hfs, comment: "Hierarchical File System (Apple)" }
+  - { name: hfsplus, comment: "HFS Plus (Apple)" }
+  - { name: jffs2, comment: "Journalling Flash File System 2" }
+  - { name: rds, comment: "Reliable Datagram Sockets" }
+  - { name: sctp, comment: "Stream Control Transmission Protocol" }
+  - { name: squashfs, comment: "SquashFS" }
+  - { name: tipc, comment: "Transparent Inter-Process Communication" }
+  - { name: udf, comment: "Universal Disk Format" }
+  - { name: usb_storage, comment: "USB storage" }
+  - { name: firewire_ohci, comment: "FireWire (IEEE 1394)" }
+  - { name: firewire_core, comment: "FireWire core" }
+  - { name: firewire_sbp2, comment: "FireWire SBP-2" }
