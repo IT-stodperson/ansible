@@ -2,6 +2,11 @@
 ---
 # kernel_hardening — sysctl security parameters
 
+- name: Check if Yama LSM is available
+  ansible.builtin.stat:
+    path: /proc/sys/kernel/yama/ptrace_scope
+  register: _yama_available
+
 - name: Deploy sysctl hardening configuration
   ansible.builtin.template:
     src: 60-kernel-hardening.conf.j2
