@@ -17,9 +17,38 @@
     enabled: true
     state: started
 
-- name: Enforce all AppArmor profiles
-  ansible.builtin.shell:
-    cmd: aa-enforce /etc/apparmor.d/*
+- name: Find AppArmor profile files
+  ansible.builtin.find:
+    paths: /etc/apparmor.d
+    maxdepth: 1
+    file_type: file
+  register: apparmor_files
+
+- name: Validate AppArmor profiles
+  ansible.builtin.command:
+    cmd: "apparmor_parser -p {{ item.path }}"
+  loop: "{{ apparmor_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  register: apparmor_validation
+  failed_when: false
+  changed_when: false
+
+- name: Report invalid AppArmor profiles that will be skipped
+  ansible.builtin.debug:
+    msg: "Skipping invalid AppArmor profile: {{ item.item.path }} — {{ item.stderr | trim }}"
+  loop: "{{ apparmor_validation.results }}"
+  loop_control:
+    label: "{{ item.item.path }}"
+  when: item.rc != 0
+
+- name: Enforce valid AppArmor profiles
+  ansible.builtin.command:
+    cmd: "aa-enforce {{ item.item.path }}"
+  loop: "{{ apparmor_validation.results }}"
+  loop_control:
+    label: "{{ item.item.path }}"
+  when: item.rc == 0
   register: aa_enforce_result
   changed_when: "'Setting' in aa_enforce_result.stdout"
 
