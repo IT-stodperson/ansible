@@ -58,9 +58,9 @@ This repository is the central source of truth for all Ansible playbooks, roles,
 
 ## Prerequisites
 
-- Ansible ≥ 2.15
-- Debian 12 (Bookworm) targets
-- The `ansible` SSH user with sudo privileges on all managed hosts
+- Ansible ≥ 2.20
+- Debian 13 (Trixie)
+- `become: true`
 - The vault password file (`.vault_pass`) in the repository root
 - Collections installed: `ansible-galaxy collection install -r requirements.yml`
 
