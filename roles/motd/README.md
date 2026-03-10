@@ -1,4 +1,3 @@
-#SPDX-License-Identifier: MIT-0
 # motd
 
 Deploy a dynamic Message-of-the-Day on Debian-based servers. The role
@@ -10,9 +9,9 @@ an APT hook refreshes the cache after each package update.
 
 ## Requirements
 
-- Ansible ≥ 2.15
-- Debian 12 (Bookworm) targets
-- `ansible` SSH user with sudo privileges
+- Ansible ≥ 2.20
+- Debian 13 (Trixie)
+- `become: true`
 
 ## Role variables
 
