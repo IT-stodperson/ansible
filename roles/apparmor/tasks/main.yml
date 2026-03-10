@@ -31,7 +31,15 @@
   register: aa_complain_result
   changed_when: "'Setting' in aa_complain_result.stdout"
 
-- name: Remove specified AppArmor profiles from the kernel
+- name: Disable specified AppArmor profiles persistently
+  ansible.builtin.file:
+    src: "/etc/apparmor.d/{{ item }}"
+    dest: "/etc/apparmor.d/disable/{{ item }}"
+    state: link
+  loop: "{{ apparmor_remove_profiles }}"
+  when: apparmor_remove_profiles | length > 0
+
+- name: Unload disabled AppArmor profiles from the running kernel
   ansible.builtin.command:
     cmd: "apparmor_parser -R /etc/apparmor.d/{{ item }}"
   loop: "{{ apparmor_remove_profiles }}"
