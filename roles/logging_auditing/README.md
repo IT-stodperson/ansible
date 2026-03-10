@@ -1,43 +1,33 @@
-logging_auditing
-================
+# logging_auditing
 
-Harden logging and auditing on Debian-based servers. This role configures
-journald with persistent storage and security-focused settings, installs
-and configures auditd with host-specific audit rules, and ensures both
-services are enabled and running.
+Hardens logging and auditing on Debian servers: configures journald with
+persistent storage and security-focused settings, installs and configures
+`auditd` with host-specific audit rules, enables process accounting (`acct`)
+and system statistics (`sysstat`).
 
-Requirements
-------------
+## Requirements
 
-- Ansible >= 2.20
-- Target must be a Debian-based system (Debian bookworm/trixie, Ubuntu jammy/noble).
-- The role requires root privileges (`become: true`).
-- Host-specific audit rules templates must be placed in
-  `templates/audit-rules/<inventory_hostname>.rules.j2` for each server.
+- Ansible ≥ 2.15
+- Debian 12 (Bookworm)
+- `become: true`
 
-Role Variables
---------------
+## Role variables
 
-This role has no configurable default variables. All configuration is
-managed through templates.
+This role has no configurable defaults — all settings are driven by templates:
 
-### What the role configures (non-variable)
+- `templates/50-journald-hardening.conf.j2` — journald drop-in
+- `templates/auditd.conf.j2` — auditd daemon configuration
+- `templates/audit-rules/<hostname>.rules.j2` — per-host audit rules
 
-**Journald** (`/etc/systemd/journald.conf.d/50-security-hardening.conf`):
-- Persistent storage, compression, rate limiting, Forward Secure Sealing
-
-**Auditd** (`/etc/audit/auditd.conf`):
-- Daemon configuration (log format, buffer size, retention)
-
-**Audit rules** (`/etc/audit/rules.d/audit.rules`):
-- Host-specific rules deployed from `templates/audit-rules/<hostname>.rules.j2`
-- If no host-specific template exists, the role skips rule deployment and
-  warns instead
+To add audit rules for a host, create
+`templates/audit-rules/<inventory_hostname>.rules.j2`.
+If no host-specific rules file exists, the base auditd configuration is still
+applied but no rules are loaded.
 
 ### Post-deployment manual step
 
-After the role runs, you must generate Forward Secure Sealing keys on
-each host:
+After deploying this role, run the following on each target to enable
+Forward Secure Sealing (FSS) for journald:
 
 ```bash
 sudo journalctl --setup-keys
@@ -45,60 +35,29 @@ sudo journalctl --setup-keys
 
 Save the verification key in your password manager.
 
-Dependencies
-------------
+## Tags
+
+| Tag | Tasks |
+|---|---|
+| `logging` | All tasks in this role |
+
+## Dependencies
 
 None.
 
-Use Cases
----------
-
-### 1. Apply all logging and auditing hardening with defaults
+## Example playbook
 
 ```yaml
 - hosts: debian_servers
   become: true
   roles:
-    - logging_auditing
+    - role: logging_auditing
 ```
 
 ```bash
-ansible-playbook -i inventory site.yml
+ansible-playbook playbooks/security-hardening.yml --tags logging
 ```
 
-### 2. Run against a single host
+## License
 
-```bash
-ansible-playbook -i inventory site.yml --limit webserver01
-```
-
-### 3. Dry-run (check mode)
-
-Preview changes without modifying the system:
-
-```bash
-ansible-playbook -i inventory site.yml --check --diff
-```
-
-### 4. Use in a larger playbook with other hardening roles
-
-```yaml
-- hosts: debian_servers
-  become: true
-  roles:
-    - kernel_hardening
-    - accounts_hardening
-    - pam_hardening
-    - logging_auditing
-    - ssh_hardening
-```
-
-License
--------
-
-MIT
-
-Author Information
-------------------
-
-Tobias Svenblad / IT-stodperson
+MIT-0

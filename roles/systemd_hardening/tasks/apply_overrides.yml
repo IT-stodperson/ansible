@@ -77,7 +77,7 @@
       Service {{ item }} is installed but no override template exists at
       templates/overrides/{{ item }}.conf.j2 — skipping.
   loop: "{{ _installed_services | difference(_services_to_harden) }}"
-  ignore_errors: true  # noqa: ignore-errors
+  failed_when: false
 
 - name: Remind about service restart after hardening
   ansible.builtin.fail:
@@ -86,4 +86,4 @@
       not been restarted. Reboot the host or restart individual services
       to apply the new restrictions.
   when: _services_to_harden | length > 0
-  ignore_errors: true  # noqa: ignore-errors
+  failed_when: false

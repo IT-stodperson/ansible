@@ -4,28 +4,14 @@
 
 - name: Apply sysctl configuration
   listen: Reload sysctl
-  ansible.builtin.command:
-    cmd: sysctl -p /etc/sysctl.d/60-kernel-hardening.conf
-  register: _sysctl_reload
+  ansible.builtin.shell:
+    cmd: |
+      sysctl_errors=$(sysctl -p /etc/sysctl.d/60-kernel-hardening.conf 2>&1 1>/dev/null)
+      unexpected=$(echo "$sysctl_errors" | grep -v 'permission denied on key' | grep -v '^$')
+      if [ -n "$unexpected" ]; then
+        echo "$unexpected" >&2
+        exit 1
+      fi
+    executable: /bin/bash
   changed_when: true
-  failed_when: >-
-    (_sysctl_reload.stderr_lines | default([])) |
-    reject('match', '^sysctl: permission denied on key') |
-    list | length > 0
   become: true
-
-- name: Warn if sysctl parameters were denied (Secure Boot lockdown)
-  listen: Reload sysctl
-  ansible.builtin.fail:
-    msg: >-
-      WARNING: Some sysctl parameters could not be applied due to kernel
-      lockdown (Secure Boot). A reboot is recommended so that
-      systemd-sysctl.service can apply all parameters at next boot.
-      Denied keys: {{ (_sysctl_reload.stderr_lines | default([])) |
-      select('match', '^sysctl: permission denied on key') |
-      list | join('; ') }}
-  when: >-
-    (_sysctl_reload.stderr_lines | default([])) |
-    select('match', '^sysctl: permission denied on key') |
-    list | length > 0
-  ignore_errors: true  # noqa: ignore-errors

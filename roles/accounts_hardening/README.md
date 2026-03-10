@@ -1,25 +1,21 @@
-accounts_hardening
-=========
+# accounts_hardening
 
-Harden user accounts and shell environment on Debian-based servers.
-This role configures `/etc/login.defs` (password aging, encryption,
-umask), enforces aging policies on existing accounts with exemption
-support, and deploys a `/etc/profile.d` script that sets session
-timeouts, history hardening, and safety aliases.
+Hardens local user account settings on Debian servers: password aging policy
+(`login.defs`), per-account aging enforcement with exemption support, and a
+shell hardening profile (`/etc/profile.d/`) that sets session timeouts, history
+hardening, and safety aliases.
 
-Requirements
-------------
+## Requirements
 
-- Ansible >= 2.20
-- Target must be a Debian-based system (Debian bookworm/trixie, Ubuntu jammy/noble).
-- The role requires root privileges (`become: true`).
+- Ansible ≥ 2.15
+- Debian 12 (Bookworm)
+- `become: true`
 
-Role Variables
---------------
+## Role variables
 
 All variables are defined in `defaults/main.yml` and can be overridden.
 
-### Password aging
+### Password aging (`login.defs`)
 
 | Variable | Default | Description |
 |---|---|---|
@@ -31,7 +27,7 @@ All variables are defined in `defaults/main.yml` and can be overridden.
 
 | Variable | Default | Description |
 |---|---|---|
-| `session_timeout` | `900` | Idle timeout in seconds (15 min). Applied to non-root, non-sudo users. |
+| `session_timeout` | `900` | Idle timeout in seconds (15 min) applied to non-root, non-sudo users |
 
 ### Exemptions
 
@@ -40,151 +36,60 @@ All variables are defined in `defaults/main.yml` and can be overridden.
 | `aging_exempt_users` | `[ansible, root]` | Users excluded from password aging enforcement |
 | `aging_exempt_groups` | `[teachers]` | Groups whose members are excluded from password aging |
 
-### What login.defs configures (non-variable, hardcoded in template)
+### Hardcoded `login.defs` settings (template, not variables)
 
 - `ENCRYPT_METHOD YESCRYPT` (strongest available hash)
-- `UMASK 027` (files 640, directories 750)
+- `UMASK 027`
 - `HOME_MODE 0700`
 - `LOGIN_RETRIES 3`, `LOGIN_TIMEOUT 60`
 - `LOG_OK_LOGINS yes`, `FAILLOG_ENAB yes`
 
-### What the profile script configures
+### Shell profile (`/etc/profile.d/`)
 
-- `umask 027` enforced in shell
+- `umask 027` enforced
 - `TMOUT` (read-only) for non-root, non-sudo users
 - Core dumps disabled (`ulimit -c 0`)
 - `noclobber` enabled
 - History: 10 000 entries, timestamped, `ignoreboth`, append mode
 - Safety aliases: `rm -I`, `cp -i`, `mv -i`
 
-Dependencies
-------------
+## Tags
+
+| Tag | Tasks |
+|---|---|
+| `accounts` | All tasks in this role |
+| `accounts_login_defs` | `login.defs` shadow password settings |
+| `accounts_aging` | Per-account password aging enforcement |
+| `accounts_shell` | Shell timeout profile in `/etc/profile.d/` |
+
+## Dependencies
 
 None.
 
-Use Cases
----------
-
-### 1. Apply all account hardening with defaults
-
-```yaml
-- hosts: debian_servers
-  become: true
-  roles:
-    - accounts_hardening
-```
-
-```bash
-ansible-playbook -i inventory site.yml
-```
-
-### 2. Override password aging policy
+## Example playbook
 
 ```yaml
 - hosts: debian_servers
   become: true
   roles:
     - role: accounts_hardening
-      shadow_pass_max_days: 90
-      shadow_pass_min_days: 7
-      shadow_pass_warn_age: 14
+      vars:
+        shadow_pass_max_days: 180
+        shadow_pass_warn_age: 14
+        aging_exempt_users:
+          - ansible
+          - root
+          - backup
 ```
-
-### 3. Customize session timeout and exemptions
-
-```yaml
-- hosts: debian_servers
-  become: true
-  roles:
-    - role: accounts_hardening
-      session_timeout: 600
-      aging_exempt_users:
-        - ansible
-        - root
-        - monitoring
-      aging_exempt_groups:
-        - teachers
-        - admins
-```
-
-### 4. Run only a specific subsystem using tags
-
-Deploy only the login.defs configuration:
 
 ```bash
-ansible-playbook -i inventory site.yml --tags accounts_login_defs
+# Apply with tag filter
+ansible-playbook playbooks/security-hardening.yml --tags accounts
+
+# Dry run
+ansible-playbook playbooks/security-hardening.yml --tags accounts --check --diff
 ```
 
-Enforce password aging only (without touching login.defs or shell):
+## License
 
-```bash
-ansible-playbook -i inventory site.yml --tags accounts_aging
-```
-
-Deploy only the shell hardening profile:
-
-```bash
-ansible-playbook -i inventory site.yml --tags accounts_shell
-```
-
-Available tags: `accounts`, `accounts_login_defs`, `accounts_aging`,
-`accounts_shell`.
-
-### 5. Run against a single host
-
-```bash
-ansible-playbook -i inventory site.yml --limit webserver01
-```
-
-### 6. Override variables from the command line
-
-```bash
-ansible-playbook -i inventory site.yml \
-  -e shadow_pass_max_days=90 \
-  -e session_timeout=600
-```
-
-### 7. Dry-run (check mode)
-
-Preview changes without modifying the system:
-
-```bash
-ansible-playbook -i inventory site.yml --check --diff
-```
-
-### 8. Use in a larger playbook with other hardening roles
-
-```yaml
-- hosts: debian_servers
-  become: true
-  roles:
-    - common
-    - accounts_hardening
-    - pam_hardening
-    - ssh_hardening
-    - auditd
-```
-
-### 9. Set variables per environment in group_vars
-
-```yaml
-# group_vars/production.yml
-shadow_pass_max_days: 90
-shadow_pass_warn_age: 14
-session_timeout: 900
-
-# group_vars/development.yml
-shadow_pass_max_days: 365
-shadow_pass_warn_age: 35
-session_timeout: 0
-```
-
-License
--------
-
-MIT
-
-Author Information
-------------------
-
-Tobias Svenblad / IT-stodperson
+MIT-0

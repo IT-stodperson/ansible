@@ -1,140 +1,59 @@
-motd
-====
+#SPDX-License-Identifier: MIT-0
+# motd
 
-Deploy dynamic MOTD infrastructure on Debian-based servers. This role
-deploys a unified MOTD script with a common base (system info, uptime,
-memory, disk, security) and per-host extensions (services, connections,
-usage guides). Per-host sections are included automatically based on
-`inventory_hostname`, similar to the nftables role's snippet architecture.
+Deploy a dynamic Message-of-the-Day on Debian-based servers. The role
+deploys a shared base MOTD script (system info, uptime, disk/memory usage,
+last login) and automatically includes per-host snippet templates when
+found under `templates/scripts/per_host/<hostname>_*.j2`. A systemd
+cache service/timer pre-generates slow data at boot and every six hours;
+an APT hook refreshes the cache after each package update.
 
-The role also sets up a cache update script for package update counts,
-a systemd timer to refresh the cache periodically, and an APT hook to
-trigger cache updates after package operations.
+## Requirements
 
-Requirements
-------------
+- Ansible ≥ 2.15
+- Debian 12 (Bookworm) targets
+- `ansible` SSH user with sudo privileges
 
-- Ansible >= 2.20
-- Target must be a Debian-based system (Debian bookworm/trixie, Ubuntu jammy/noble).
-- The role requires root privileges (`become: true`).
-
-Role Variables
---------------
-
-All variables are defined in `defaults/main.yml` and can be overridden.
-
-### Cache timer settings
+## Role variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `motd_cache_timer_boot_delay` | `2min` | Delay after boot before the first cache update |
-| `motd_cache_timer_interval` | `6h` | Interval between periodic cache updates |
+| `motd_cache_timer_boot_delay` | `"2min"` | Delay after boot before the cache service first runs |
+| `motd_cache_timer_interval` | `"6h"` | How often the cache timer fires to refresh slow MOTD data |
+| `motd_role` | `"Server"` | Server role label shown in the MOTD header — override per host |
 
-### MOTD display settings
+Override `motd_role` in `host_vars/<hostname>/vars.yml` to give each server
+a meaningful label (e.g. `"Wazuh SIEM"`, `"Ansible Controller"`).
 
-| Variable | Default | Description |
-|---|---|---|
-| `motd_role` | `Server` | Server role label shown in the MOTD header. Override in `host_vars/` per server. |
+## Tags
 
-### What the role configures (non-variable)
+| Tag | What it runs |
+|---|---|
+| `motd` | All MOTD tasks |
+| `motd_cache` | Cache infrastructure only (service, timer, APT hook) |
+| `motd_script` | MOTD script deployment only |
 
-- `/etc/update-motd.d/10-sysinfo` — combined base + per-host MOTD script
-- `/usr/local/bin/update-motd-cache.sh` — cache update script
-- `/etc/systemd/system/motd-update-cache.service` — systemd oneshot service
-- `/etc/systemd/system/motd-update-cache.timer` — systemd timer (boot delay + interval)
-- `/etc/apt/apt.conf.d/99motd-cache` — APT hook to refresh cache after installs
+## Per-host snippets
 
-Architecture
-------------
-
-The MOTD uses a base + per-host snippet design (like the nftables role):
+Create a Jinja2 template at:
 
 ```
-templates/scripts/
-├── 10-sysinfo.j2                  # Base template (all servers)
-└── per_host/
-    ├── ansible.its.ax_init.j2     # Per-host background jobs
-    ├── ansible.its.ax_output.j2   # Per-host output sections
-    ├── wazuh.its.ax_init.j2
-    ├── wazuh.its.ax_process.j2    # Per-host result processing
-    ├── wazuh.its.ax_output.j2
-    └── ...
+roles/motd/templates/scripts/per_host/<inventory_hostname>_<section>.j2
 ```
 
-**Three include points** in the base template:
+The base script includes all matching snippets automatically via
+`{% include ... ignore missing %}`. No task changes are needed — just
+add the template file and re-run the role.
 
-1. `_init.j2` — Start host-specific background jobs and collect data
-2. `_process.j2` — Wait for background jobs and process results
-3. `_output.j2` — Display host-specific sections (services, connections, etc.)
-
-All includes use `ignore missing`, so hosts without snippets get only the
-base MOTD. To add a new server, create its snippet files — no task or
-playbook changes needed.
-
-Dependencies
-------------
-
-None.
-
-Use Cases
----------
-
-### 1. Deploy MOTD to all servers (auto-selects per-host sections)
-
-```bash
-ansible-playbook playbooks/general-settings.yml --tags motd
-```
-
-### 2. Deploy to a single host
-
-```bash
-ansible-playbook playbooks/general-settings.yml --tags motd --limit wazuh.its.ax
-```
-
-### 3. Override cache timer settings
+## Example playbook
 
 ```yaml
 - hosts: debian_servers
-  become: true
   roles:
     - role: motd
-      motd_cache_timer_boot_delay: "5min"
-      motd_cache_timer_interval: "12h"
+      tags: motd
 ```
 
-### 4. Run only a specific subsystem using tags
+## License
 
-```bash
-# Cache infrastructure only
-ansible-playbook playbooks/general-settings.yml --tags motd --tags motd_cache
-
-# MOTD script only
-ansible-playbook playbooks/general-settings.yml --tags motd --tags motd_script
-```
-
-Available tags: `motd`, `motd_cache`, `motd_script`.
-
-### 5. Dry-run (check mode)
-
-```bash
-ansible-playbook playbooks/general-settings.yml --tags motd --check --diff
-```
-
-### 6. Add MOTD for a new server
-
-1. Set `motd_role` in `inventory/host_vars/<hostname>.yml`
-2. Create snippet files in `templates/scripts/per_host/`:
-   - `<hostname>_init.j2` — background jobs / data collection
-   - `<hostname>_process.j2` — wait for jobs / process results
-   - `<hostname>_output.j2` — display service-specific sections
-3. Run: `ansible-playbook playbooks/general-settings.yml --tags motd --limit <hostname>`
-
-License
--------
-
-MIT
-
-Author Information
-------------------
-
-Tobias Svenblad / IT-stodperson
+MIT-0

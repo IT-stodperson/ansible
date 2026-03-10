@@ -1,154 +1,76 @@
-nftables
-========
+#SPDX-License-Identifier: MIT-0
+# nftables
 
-Manage nftables firewall on Debian-based servers. The base template is
-always deployed, providing common hardening (early filtering, mangle,
-SSH rate limiting, Ansible server access). Per-host service rules are
-layered on top via snippet includes.
+Manage the nftables firewall on Debian-based servers. The base template is
+always deployed, providing common hardening rules (early connection-state
+filtering, ICMP limits, mangle/prerouting defrag, and a REJECT-for-internals
+/ DROP-for-externals verdict split). Per-host service rules are pulled in
+automatically via `{% include ... ignore missing %}` when a matching snippet
+exists under `templates/per_host/<hostname>/`.
 
-Template Architecture
----------------------
+## Requirements
 
-A single `base.conf.j2` template is deployed to every host. It contains:
+- Ansible ≥ 2.15
+- Debian 12 (Bookworm) targets
+- `ansible` SSH user with sudo privileges
 
-- **NETDEV early_filter** — DDoS mitigation at ingress (before conntrack)
-- **inet mangle** — TCP sanity, scan signatures, spoofed loopback
-- **inet filter** — SSH access control with rate limiting, ICMP, DHCP,
-  hybrid REJECT/DROP final verdict
+## Role variables
 
-The base template includes per-host snippets from
-`templates/per_host/<hostname>_*.j2` at five extension points:
+### Network interfaces
 
-| Snippet suffix    | Purpose                                          |
-|-------------------|--------------------------------------------------|
-| `_defines.j2`     | Extra nft `define` directives (before tables)    |
-| `_sets.j2`        | Service-specific sets and rate-limit sets         |
-| `_chains.j2`      | Service-specific guard chains                    |
-| `_inbound_v4.j2`  | IPv4 inbound rules for the service               |
-| `_inbound_v6.j2`  | IPv6 inbound rules for the service               |
+| Variable | Default | Description |
+|---|---|---|
+| `nft_ingress_device` | `["ens18"]` | List of ingress network interfaces |
 
-All snippets use `ignore missing`, so hosts without snippets get only the
-base ruleset.
+### Ansible control node (always allowed SSH)
 
-Requirements
-------------
+| Variable | Default | Description |
+|---|---|---|
+| `nft_ansible_server_v4` | `"10.0.99.22"` | IPv4 of the Ansible controller |
+| `nft_ansible_server_v6` | `"2a00:5500:c00a:99:..."` | IPv6 of the Ansible controller |
 
-- Ansible >= 2.20
-- Target must be a Debian-based system (Debian bookworm/trixie, Ubuntu jammy/noble).
-- The role requires root privileges (`become: true`).
+### SSH allowed networks
 
-Role Variables
---------------
+| Variable | Default | Description |
+|---|---|---|
+| `nft_ssh_teacher_v4` | `["10.0.20.0/24", "192.168.20.0/24"]` | Teacher/staff IPv4 networks |
+| `nft_ssh_teacher_v6` | `["2a00:5500:c00a:20::/64"]` | Teacher/staff IPv6 networks |
+| `nft_ssh_student_v4` | `["10.0.30.0/24", "192.168.30.0/24"]` | Student IPv4 networks |
+| `nft_ssh_student_v6` | `["2a00:5500:c00a:30::/64"]` | Student IPv6 networks |
+| `nft_ssh_allowed_v4` | `{{ nft_ssh_teacher_v4 }}` | Per-host active IPv4 SSH allowlist |
+| `nft_ssh_allowed_v6` | `{{ nft_ssh_teacher_v6 }}` | Per-host active IPv6 SSH allowlist |
 
-### Ansible Control Node
+Override `nft_ssh_allowed_v4` / `nft_ssh_allowed_v6` in `host_vars/` to
+combine groups. The Ansible control node is always added automatically by
+the base template — do not include it in these lists.
 
-The Ansible server is always granted SSH access on every host.
+### Internal networks (REJECT vs DROP verdict)
 
-| Variable                | Default                                              | Description                  |
-|-------------------------|------------------------------------------------------|------------------------------|
-| `nft_ansible_server_v4` | `"10.0.99.22"`                                       | Ansible server IPv4 address  |
-| `nft_ansible_server_v6` | `"2a00:5500:c00a:99:be24:11ff:feb3:33d0"`            | Ansible server IPv6 address  |
+| Variable | Default | Description |
+|---|---|---|
+| `nft_internal_nets_v4` | `[10.0.x.0/24 ranges]` | Internal IPv4 subnets that get REJECT |
+| `nft_internal_nets_v6` | `[2a00:5500:c00a:x::/64 ranges]` | Internal IPv6 subnets that get REJECT |
 
-### SSH Networks
+## Per-host service rules
 
-SSH allowed networks are split into **Teacher** (staff/management) and
-**Student** groups. The `nft_ssh_allowed_v4/v6` variables control which
-groups are added to the SSH ACL. Override in `host_vars` to combine groups.
+Create snippet templates under:
 
-| Variable                | Default                                              | Description                  |
-|-------------------------|------------------------------------------------------|------------------------------|
-| `nft_ssh_teacher_v4`    | `["10.0.20.0/24", "192.168.20.0/24"]`                | Teacher IPv4 SSH networks    |
-| `nft_ssh_teacher_v6`    | `["2a00:5500:c00a:20::/64"]`                         | Teacher IPv6 SSH networks    |
-| `nft_ssh_student_v4`    | `["10.0.30.0/24", "192.168.30.0/24"]`                | Student IPv4 SSH networks    |
-| `nft_ssh_student_v6`    | `["2a00:5500:c00a:30::/64"]`                         | Student IPv6 SSH networks    |
-| `nft_ssh_allowed_v4`    | `"{{ nft_ssh_teacher_v4 }}"`                         | SSH-allowed IPv4 (override per host) |
-| `nft_ssh_allowed_v6`    | `"{{ nft_ssh_teacher_v6 }}"`                         | SSH-allowed IPv6 (override per host) |
-
-Example host_vars override for Teacher + Student SSH access:
-
-```yaml
-# inventory/host_vars/webftp.its.ax.yml
-nft_ssh_allowed_v4: "{{ nft_ssh_teacher_v4 + nft_ssh_student_v4 }}"
-nft_ssh_allowed_v6: "{{ nft_ssh_teacher_v6 + nft_ssh_student_v6 }}"
+```
+roles/nftables/templates/per_host/<inventory_hostname>/
 ```
 
-Existing Host Snippets
-----------------------
+The base template includes them automatically. No task changes needed — add
+the template file and re-run the role.
 
-| Host                    | SSH access          | Extra ports  |
-|-------------------------|---------------------|--------------|
-| `webftp.its.ax`         | Teacher + Student   | 80, 443      |
-| `mariadb.its.ax`        | Teacher (default)   | 3306         |
-
-Dependencies
-------------
-
-None.
-
-Use Cases
----------
-
-### 1. Deploy nftables to all servers
+## Example playbook
 
 ```yaml
 - hosts: debian_servers
-  become: true
   roles:
-    - nftables
+    - role: nftables
+      tags: nftables
 ```
 
-```bash
-ansible-playbook playbooks/nftables-hardening.yml
-```
+## License
 
-### 2. Deploy to a single host
-
-```bash
-ansible-playbook playbooks/nftables-hardening.yml --limit webftp.its.ax
-```
-
-### 3. Dry-run (check mode)
-
-```bash
-ansible-playbook playbooks/nftables-hardening.yml --check --diff
-```
-
-### 4. Add service rules for a new host
-
-1. Create snippet files under `roles/nftables/templates/per_host/`:
-   ```
-   newhost.its.ax_defines.j2      # optional: extra nft defines
-   newhost.its.ax_sets.j2         # service sets and rate-limit sets
-   newhost.its.ax_chains.j2       # service guard chains
-   newhost.its.ax_inbound_v4.j2   # IPv4 inbound rules
-   newhost.its.ax_inbound_v6.j2   # IPv6 inbound rules
-   ```
-2. If the host needs non-default SSH access, add an override in
-   `inventory/host_vars/newhost.its.ax.yml`:
-   ```yaml
-   nft_ssh_allowed_v4: "{{ nft_ssh_teacher_v4 + nft_ssh_student_v4 }}"
-   nft_ssh_allowed_v6: "{{ nft_ssh_teacher_v6 + nft_ssh_student_v6 }}"
-   ```
-3. Run the playbook with `--limit newhost.its.ax`.
-
-### 5. Use in the master hardening playbook
-
-```yaml
-- hosts: debian_servers
-  become: true
-  roles:
-    - kernel_hardening
-    - nftables
-    - ssh_hardening
-    - logging_auditing
-```
-
-License
--------
-
-MIT
-
-Author Information
-------------------
-
-Tobias Svenblad / IT-stodperson
+MIT-0
