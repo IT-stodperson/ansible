@@ -11,15 +11,18 @@ fmt_svc() {
 mapfile -t SVC_STATUS < "$MOTD_TMPDIR/services"
 SSH_HEALTH=$(fmt_svc "${SVC_STATUS[0]}")
 
-# Docker container health
+# Docker container health — look up by image name
+# Format in docker file: image\tname\tstatus
 fmt_container() {
-    local name="$1"
-    local status
+    local image="$1"
+    local name status
     if [[ -s "$MOTD_TMPDIR/docker" ]]; then
-        status=$(awk -F'\t' -v n="$name" '$1 == n {print $2}' "$MOTD_TMPDIR/docker")
+        read -r name status <<< "$(awk -F'\t' -v img="$image" '
+            index($1, img) { print $2, $3; exit }
+        ' "$MOTD_TMPDIR/docker")"
     fi
-    if [[ -z "$status" ]]; then
-        printf "%s●%s Not found" "$RED" "$NC"
+    if [[ -z "$name" ]]; then
+        printf "%s●%s Not running" "$RED" "$NC"
     elif [[ "$status" == *"Up"* ]]; then
         printf "%s●%s %s" "$GREEN" "$NC" "$status"
     else
@@ -27,8 +30,9 @@ fmt_container() {
     fi
 }
 
-KANIDM_SERVER_HEALTH=$(fmt_container "kanidm-server")
-KANIDM_RADIUS_HEALTH=$(fmt_container "kanidm-radius")
+KANIDM_SERVER_HEALTH=$(fmt_container "kanidm/server")
+KANIDM_RADIUS_HEALTH=$(fmt_container "kanidm/radius")
+KANIDM_TOOLS_HEALTH=$(fmt_container "kanidm/tools")
 
 # Docker images
 DOCKER_IMAGES=""
