@@ -3,10 +3,10 @@ systemctl is-active ssh 2>/dev/null \
     > "$MOTD_TMPDIR/services" &
 pid_svc=$!
 
-# Docker container health
+# Docker container health — capture image, name, and status
 pid_docker=""
 if command -v docker &>/dev/null; then
-    docker ps --format '{{ '{{' }}.Names{{ '}}' }}\t{{ '{{' }}.Status{{ '}}' }}' 2>/dev/null \
+    docker ps -a --format '{{ '{{' }}.Image{{ '}}' }}\t{{ '{{' }}.Names{{ '}}' }}\t{{ '{{' }}.Status{{ '}}' }}' 2>/dev/null \
         > "$MOTD_TMPDIR/docker" &
     pid_docker=$!
 fi
