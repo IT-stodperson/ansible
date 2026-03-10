@@ -1,4 +1,3 @@
-#SPDX-License-Identifier: MIT-0
 # systemd_hardening
 
 Harden systemd services on Debian-based servers by deploying drop-in
@@ -12,9 +11,9 @@ to prompt a manual service restart.
 
 ## Requirements
 
-- Ansible ≥ 2.15
-- Debian 12 (Bookworm) targets
-- `ansible` SSH user with sudo privileges
+- Ansible ≥ 2.20
+- Debian 13 (Trixie)
+- `become: true`
 
 ## Role variables
 
