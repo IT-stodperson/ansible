@@ -31,7 +31,7 @@
 
 - name: Install auditd and plugins
   ansible.builtin.apt:
-    name:
+    package:
       - auditd
       - audispd-plugins
     state: present
