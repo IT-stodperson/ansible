@@ -55,5 +55,5 @@
 
 - name: Install kanidm-unixd package
   ansible.builtin.apt:
-    name: "{{ kanidm_package }}"
+    package: "{{ kanidm_package }}"
     state: present
