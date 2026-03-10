@@ -1,0 +1,10 @@
+# Service health — SSH and MariaDB via systemctl
+systemctl is-active ssh mariadb 2>/dev/null \
+    > "$MOTD_TMPDIR/services" &
+pid_svc=$!
+
+# Network connections — single ss call
+read -r SSH_CONN MARIADB_CONN <<< "$(ss -Htn state established | awk '
+    $3 ~ /:22$/   {a++}
+    $3 ~ /:3306$/ {b++}
+    END {print a+0, b+0}')"

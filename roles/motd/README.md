@@ -82,13 +82,13 @@ Use Cases
 ### 1. Deploy MOTD to all servers (auto-selects per-host sections)
 
 ```bash
-ansible-playbook playbooks/motd-deploy.yml
+ansible-playbook playbooks/general-settings.yml --tags motd
 ```
 
 ### 2. Deploy to a single host
 
 ```bash
-ansible-playbook playbooks/motd-deploy.yml --limit wazuh.its.ax
+ansible-playbook playbooks/general-settings.yml --tags motd --limit wazuh.its.ax
 ```
 
 ### 3. Override cache timer settings
@@ -106,10 +106,10 @@ ansible-playbook playbooks/motd-deploy.yml --limit wazuh.its.ax
 
 ```bash
 # Cache infrastructure only
-ansible-playbook playbooks/motd-deploy.yml --tags motd_cache
+ansible-playbook playbooks/general-settings.yml --tags motd --tags motd_cache
 
 # MOTD script only
-ansible-playbook playbooks/motd-deploy.yml --tags motd_script
+ansible-playbook playbooks/general-settings.yml --tags motd --tags motd_script
 ```
 
 Available tags: `motd`, `motd_cache`, `motd_script`.
@@ -117,7 +117,7 @@ Available tags: `motd`, `motd_cache`, `motd_script`.
 ### 5. Dry-run (check mode)
 
 ```bash
-ansible-playbook playbooks/motd-deploy.yml --check --diff
+ansible-playbook playbooks/general-settings.yml --tags motd --check --diff
 ```
 
 ### 6. Add MOTD for a new server
@@ -127,7 +127,7 @@ ansible-playbook playbooks/motd-deploy.yml --check --diff
    - `<hostname>_init.j2` — background jobs / data collection
    - `<hostname>_process.j2` — wait for jobs / process results
    - `<hostname>_output.j2` — display service-specific sections
-3. Run: `ansible-playbook playbooks/motd-deploy.yml --limit <hostname>`
+3. Run: `ansible-playbook playbooks/general-settings.yml --tags motd --limit <hostname>`
 
 License
 -------
