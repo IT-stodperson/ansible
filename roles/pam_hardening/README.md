@@ -1,4 +1,3 @@
-#SPDX-License-Identifier: MIT-0
 # pam_hardening
 
 Harden PAM (Pluggable Authentication Modules) on Debian-based servers.
@@ -10,9 +9,9 @@ compatible with Debian's PAM management infrastructure.
 
 ## Requirements
 
-- Ansible ≥ 2.15
-- Debian 12 (Bookworm) targets
-- `ansible` SSH user with sudo privileges
+- Ansible ≥ 2.20
+- Debian 13 (Trixie)
+- `become: true`
 
 ## Role variables
 
