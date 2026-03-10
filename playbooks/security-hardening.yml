@@ -45,7 +45,3 @@
       tags: ntp
     - role: systemd_hardening
       tags: systemd
-    - role: login_banners
-      tags: login_banners
-    - role: motd
-      tags: motd
