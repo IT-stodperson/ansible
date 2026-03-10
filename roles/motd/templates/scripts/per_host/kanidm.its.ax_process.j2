@@ -1,0 +1,38 @@
+wait "$pid_svc"
+[[ -n "$pid_docker" ]] && wait "$pid_docker"
+
+# Service health
+fmt_svc() {
+    [[ "$1" == "active" ]] \
+        && printf "%s●%s Running" "$GREEN" "$NC" \
+        || printf "%s●%s Stopped" "$RED" "$NC"
+}
+
+mapfile -t SVC_STATUS < "$MOTD_TMPDIR/services"
+SSH_HEALTH=$(fmt_svc "${SVC_STATUS[0]}")
+
+# Docker container health
+fmt_container() {
+    local name="$1"
+    local status
+    if [[ -s "$MOTD_TMPDIR/docker" ]]; then
+        status=$(awk -F'\t' -v n="$name" '$1 == n {print $2}' "$MOTD_TMPDIR/docker")
+    fi
+    if [[ -z "$status" ]]; then
+        printf "%s●%s Not found" "$RED" "$NC"
+    elif [[ "$status" == *"Up"* ]]; then
+        printf "%s●%s %s" "$GREEN" "$NC" "$status"
+    else
+        printf "%s●%s %s" "$RED" "$NC" "$status"
+    fi
+}
+
+KANIDM_SERVER_HEALTH=$(fmt_container "kanidm-server")
+KANIDM_RADIUS_HEALTH=$(fmt_container "kanidm-radius")
+
+# Docker images
+DOCKER_IMAGES=""
+if command -v docker &>/dev/null; then
+    DOCKER_IMAGES=$(docker images --format '{{ '{{' }}.Repository{{ '}}' }}:{{ '{{' }}.Tag{{ '}}' }}\t{{ '{{' }}.Size{{ '}}' }}' 2>/dev/null \
+        | grep -i kanidm | sort)
+fi

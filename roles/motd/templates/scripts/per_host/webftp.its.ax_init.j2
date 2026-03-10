@@ -1,0 +1,11 @@
+# Service health — single systemctl call
+systemctl is-active ssh apache2 2>/dev/null \
+    > "$MOTD_TMPDIR/services" &
+pid_svc=$!
+
+# Network connections — single ss call
+read -r SSH_CONN HTTP_CONN HTTPS_CONN <<< "$(ss -Htn state established | awk '
+    $3 ~ /:22$/  {a++}
+    $3 ~ /:80$/  {b++}
+    $3 ~ /:443$/ {c++}
+    END {print a+0, b+0, c+0}')"

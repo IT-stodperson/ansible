@@ -1,1 +1,3 @@
 ansible_connection: local
+
+motd_role: "Ansible Control Host"

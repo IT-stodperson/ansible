@@ -17,3 +17,5 @@ kanidm_pam_allowed_login_groups:
   - teachers
   - students
   - ansible
+
+motd_role: "Apache2 Web Server"

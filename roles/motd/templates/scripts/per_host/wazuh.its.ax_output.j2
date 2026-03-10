@@ -1,0 +1,17 @@
+
+print_separator
+
+printf "%sServices:%s\n" "$BOLD" "$NC"
+printf "  SSH:               %s\n" "$SSH_HEALTH"
+printf "  Wazuh Manager:     %s\n" "$WAZUH_MANAGER_HEALTH"
+printf "  Wazuh Indexer:     %s\n" "$WAZUH_INDEXER_HEALTH"
+printf "  Wazuh Dashboard:   %s\n\n" "$WAZUH_DASHBOARD_HEALTH"
+
+if [[ -n "$AGENT_INFO" ]]; then
+    printf "%sAgents:%s       %s\n\n" "$BOLD" "$NC" "$AGENT_INFO"
+fi
+
+printf "%sConnections:%s\n" "$BOLD" "$NC"
+printf "  SSH (:22):         %s active\n" "$SSH_CONN"
+printf "  Dashboard (:443):  %s active\n" "$DASHBOARD_CONN"
+printf "  Indexer (:9200):   %s active\n" "$INDEXER_CONN"

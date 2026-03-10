@@ -1,0 +1,19 @@
+# Service health — SSH via systemctl
+systemctl is-active ssh 2>/dev/null \
+    > "$MOTD_TMPDIR/services" &
+pid_svc=$!
+
+# Docker container health
+pid_docker=""
+if command -v docker &>/dev/null; then
+    docker ps --format '{{ '{{' }}.Names{{ '}}' }}\t{{ '{{' }}.Status{{ '}}' }}' 2>/dev/null \
+        > "$MOTD_TMPDIR/docker" &
+    pid_docker=$!
+fi
+
+# Network connections — single ss call
+read -r SSH_CONN HTTPS_CONN LDAPS_CONN <<< "$(ss -Htn state established | awk '
+    $3 ~ /:22$/  {a++}
+    $3 ~ /:443$/ {b++}
+    $3 ~ /:636$/ {c++}
+    END {print a+0, b+0, c+0}')"

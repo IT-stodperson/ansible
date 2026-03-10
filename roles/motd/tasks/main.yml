@@ -5,13 +5,26 @@
 # =============================================================================
 # MOTD — Main task entry point
 # =============================================================================
-# Deploys cache update script, systemd service/timer, and APT hook.
+# Deploys:
+#   1. Cache update script, systemd service/timer, and APT hook
+#   2. Combined base + per-host MOTD script (auto-selects per-host snippets)
 #
-# To deploy host-specific MOTD scripts, use the motd-deploy playbook:
-#   ansible-playbook playbooks/motd-deploy.yml --limit <host> -e motd_script=10-custom-wazuh
+# Per-host MOTD sections are included automatically from
+# templates/scripts/per_host/<hostname>_*.j2 using Jinja2 includes,
+# similar to the nftables role's per_host/ snippet architecture.
+#
+# Usage:
+#   ansible-playbook playbooks/motd-deploy.yml
+#   ansible-playbook playbooks/motd-deploy.yml --limit wazuh.its.ax
 
 - name: Deploy MOTD cache infrastructure
   ansible.builtin.import_tasks: cache_infrastructure.yml
   tags:
     - motd
     - motd_cache
+
+- name: Deploy MOTD script
+  ansible.builtin.import_tasks: deploy_script.yml
+  tags:
+    - motd
+    - motd_script

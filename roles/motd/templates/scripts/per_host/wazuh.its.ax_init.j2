@@ -1,0 +1,19 @@
+# Service health — single systemctl call instead of four
+systemctl is-active ssh wazuh-manager wazuh-indexer wazuh-dashboard 2>/dev/null \
+    > "$MOTD_TMPDIR/services" &
+pid_svc=$!
+
+# Wazuh agent count (with timeout guard)
+pid_agents=""
+if command -v /var/ossec/bin/agent_control &>/dev/null; then
+    timeout 3 /var/ossec/bin/agent_control -l 2>/dev/null \
+        > "$MOTD_TMPDIR/agents" &
+    pid_agents=$!
+fi
+
+# Network connections — single ss call
+read -r SSH_CONN DASHBOARD_CONN INDEXER_CONN <<< "$(ss -Htn state established | awk '
+    $3 ~ /:22$/   {a++}
+    $3 ~ /:443$/  {b++}
+    $3 ~ /:9200$/ {c++}
+    END {print a+0, b+0, c+0}')"
