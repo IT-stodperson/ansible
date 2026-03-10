@@ -1,4 +1,3 @@
-#SPDX-License-Identifier: MIT-0
 # ntp
 
 Configure time synchronisation via `systemd-timesyncd` on Debian-based
@@ -8,9 +7,9 @@ and ensures the service is enabled and running.
 
 ## Requirements
 
-- Ansible ≥ 2.15
-- Debian 12 (Bookworm) targets
-- `ansible` SSH user with sudo privileges
+- Ansible ≥ 2.20
+- Debian 13 (Trixie)
+- `become: true`
 
 ## Role variables
 
