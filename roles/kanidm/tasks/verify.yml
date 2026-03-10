@@ -8,10 +8,6 @@
   register: _kanidm_status
   changed_when: false
 
-- name: Display Kanidm status
-  ansible.builtin.debug:
-    msg: "{{ _kanidm_status.stdout_lines }}"
-
 - name: Verify Kanidm is online
   ansible.builtin.assert:
     that:

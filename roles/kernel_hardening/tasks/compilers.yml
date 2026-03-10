@@ -18,4 +18,4 @@
   loop: "{{ compiler_stat_results.results }}"
   loop_control:
     label: "{{ item.item }}"
-  when: item.stat.exists
+  when: item.stat.exists | bool

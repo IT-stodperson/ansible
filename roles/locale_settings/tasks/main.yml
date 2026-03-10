@@ -35,20 +35,18 @@
 - name: Build locale variable list
   ansible.builtin.set_fact:
     _locale_vars: >-
-      {{
-        (['LANG=' + locale_lang])
-        + (locale_lc_address     | ternary(['LC_ADDRESS='     + locale_lc_address],     []))
-        + (locale_lc_collate     | ternary(['LC_COLLATE='     + locale_lc_collate],     []))
-        + (locale_lc_ctype       | ternary(['LC_CTYPE='       + locale_lc_ctype],       []))
-        + (locale_lc_identification | ternary(['LC_IDENTIFICATION=' + locale_lc_identification], []))
-        + (locale_lc_measurement | ternary(['LC_MEASUREMENT=' + locale_lc_measurement], []))
-        + (locale_lc_monetary    | ternary(['LC_MONETARY='    + locale_lc_monetary],    []))
-        + (locale_lc_name        | ternary(['LC_NAME='        + locale_lc_name],        []))
-        + (locale_lc_numeric     | ternary(['LC_NUMERIC='     + locale_lc_numeric],     []))
-        + (locale_lc_paper       | ternary(['LC_PAPER='       + locale_lc_paper],       []))
-        + (locale_lc_telephone   | ternary(['LC_TELEPHONE='   + locale_lc_telephone],   []))
-        + (locale_lc_time        | ternary(['LC_TIME='        + locale_lc_time],        []))
-      }}
+      {{ (['LANG=' + locale_lang])
+         + (locale_lc_address     | ternary(['LC_ADDRESS='     + locale_lc_address],     []))
+         + (locale_lc_collate     | ternary(['LC_COLLATE='     + locale_lc_collate],     []))
+         + (locale_lc_ctype       | ternary(['LC_CTYPE='       + locale_lc_ctype],       []))
+         + (locale_lc_identification | ternary(['LC_IDENTIFICATION=' + locale_lc_identification], []))
+         + (locale_lc_measurement | ternary(['LC_MEASUREMENT=' + locale_lc_measurement], []))
+         + (locale_lc_monetary    | ternary(['LC_MONETARY='    + locale_lc_monetary],    []))
+         + (locale_lc_name        | ternary(['LC_NAME='        + locale_lc_name],        []))
+         + (locale_lc_numeric     | ternary(['LC_NUMERIC='     + locale_lc_numeric],     []))
+         + (locale_lc_paper       | ternary(['LC_PAPER='       + locale_lc_paper],       []))
+         + (locale_lc_telephone   | ternary(['LC_TELEPHONE='   + locale_lc_telephone],   []))
+         + (locale_lc_time        | ternary(['LC_TIME='        + locale_lc_time],        [])) }}
 
 - name: Read current /etc/default/locale
   ansible.builtin.slurp:
