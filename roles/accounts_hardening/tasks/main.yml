@@ -10,16 +10,19 @@
   tags:
     - accounts
     - accounts_login_defs
-  ansible.builtin.import_tasks: login_defs.yml
+  ansible.builtin.import_tasks:
+    file: login_defs.yml
 
 - name: Enforce password aging on existing accounts
   tags:
     - accounts
     - accounts_aging
-  ansible.builtin.import_tasks: password_aging.yml
+  ansible.builtin.import_tasks:
+    file: password_aging.yml
 
 - name: Harden shell environment
   tags:
     - accounts
     - accounts_shell
-  ansible.builtin.import_tasks: shell_hardening.yml
+  ansible.builtin.import_tasks:
+    file: shell_hardening.yml

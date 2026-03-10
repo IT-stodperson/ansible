@@ -7,7 +7,8 @@
 # =============================================================================
 
 - name: Discover installed services and apply hardening overrides
-  ansible.builtin.import_tasks: apply_overrides.yml
+  ansible.builtin.import_tasks:
+    file: apply_overrides.yml
   tags:
     - systemd
     - systemd_overrides

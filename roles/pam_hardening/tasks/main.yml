@@ -7,31 +7,36 @@
 # =============================================================================
 
 - name: Restrict su command
-  ansible.builtin.import_tasks: su_restriction.yml
+  ansible.builtin.import_tasks:
+    file: su_restriction.yml
   tags:
     - pam
     - pam_su
 
 - name: Configure password quality (pwquality)
-  ansible.builtin.import_tasks: pwquality.yml
+  ansible.builtin.import_tasks:
+    file: pwquality.yml
   tags:
     - pam
     - pam_pwquality
 
 - name: Configure account lockout (faillock)
-  ansible.builtin.import_tasks: faillock.yml
+  ansible.builtin.import_tasks:
+    file: faillock.yml
   tags:
     - pam
     - pam_faillock
 
 - name: Configure password history (pwhistory)
-  ansible.builtin.import_tasks: pwhistory.yml
+  ansible.builtin.import_tasks:
+    file: pwhistory.yml
   tags:
     - pam
     - pam_pwhistory
 
 - name: Harden unix authentication
-  ansible.builtin.import_tasks: unix.yml
+  ansible.builtin.import_tasks:
+    file: unix.yml
   tags:
     - pam
     - pam_unix

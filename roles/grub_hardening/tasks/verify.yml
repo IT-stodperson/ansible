@@ -8,5 +8,5 @@
   register: grub_verify
   changed_when: false
   failed_when: >
-    'set superusers' not in grub_verify.stdout or
-    'password_pbkdf2' not in grub_verify.stdout
+    'set superusers' not in (grub_verify.stdout | default('')) or
+    'password_pbkdf2' not in (grub_verify.stdout | default(''))

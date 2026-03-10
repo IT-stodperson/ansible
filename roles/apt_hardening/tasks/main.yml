@@ -7,25 +7,29 @@
 # =============================================================================
 
 - name: Install APT hardening packages
-  ansible.builtin.import_tasks: packages.yml
+  ansible.builtin.import_tasks:
+    file: packages.yml
   tags:
     - apt
     - apt_packages
 
 - name: Harden APT configuration
-  ansible.builtin.import_tasks: configuration.yml
+  ansible.builtin.import_tasks:
+    file: configuration.yml
   tags:
     - apt
     - apt_config
 
 - name: Harden APT file and directory permissions
-  ansible.builtin.import_tasks: permissions.yml
+  ansible.builtin.import_tasks:
+    file: permissions.yml
   tags:
     - apt
     - apt_permissions
 
 - name: Verify APT permission hardening
-  ansible.builtin.import_tasks: verification.yml
+  ansible.builtin.import_tasks:
+    file: verification.yml
   tags:
     - apt
     - apt_verify

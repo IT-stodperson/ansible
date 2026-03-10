@@ -7,25 +7,29 @@
 # =============================================================================
 
 - name: Blacklist dangerous kernel modules
-  ansible.builtin.import_tasks: modules.yml
+  ansible.builtin.import_tasks:
+    file: modules.yml
   tags:
     - kernel
     - kernel_modules
 
 - name: Deploy sysctl hardening parameters
-  ansible.builtin.import_tasks: sysctl.yml
+  ansible.builtin.import_tasks:
+    file: sysctl.yml
   tags:
     - kernel
     - kernel_sysctl
 
 - name: Restrict process limits and core dumps
-  ansible.builtin.import_tasks: limits.yml
+  ansible.builtin.import_tasks:
+    file: limits.yml
   tags:
     - kernel
     - kernel_limits
 
 - name: Restrict compiler access
-  ansible.builtin.import_tasks: compilers.yml
+  ansible.builtin.import_tasks:
+    file: compilers.yml
   tags:
     - kernel
     - kernel_compilers
