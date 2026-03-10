@@ -30,6 +30,7 @@ readonly YELLOW=$'\033[0;33m'
 readonly CYAN=$'\033[0;36m'
 readonly PURPLE=$'\033[0;35m'
 readonly LIGHT_BLUE=$'\033[1;34m'
+readonly WHITE=$'\033[1;37m'
 readonly NC=$'\033[0m'
 
 # ── Temp file cleanup ───────────────────────────────────────────────
@@ -59,7 +60,8 @@ fi
 
 # ── Collect fast data while background jobs run ─────────────────────
 
-HOSTNAME=$(hostname)
+HOSTNAME=$(hostname -s)
+FQDN=$(hostname -f 2>/dev/null || echo "$HOSTNAME")
 KERNEL=$(uname -r)
 UPTIME=$(uptime -p | sed 's/^up //')
 LOAD=$(awk '{printf "%s, %s, %s", $1, $2, $3}' /proc/loadavg)
@@ -140,14 +142,18 @@ printf "%s%s║                      SYSTEM INFORMATION                      ║
 printf "%s%s╚══════════════════════════════════════════════════════════════╝%s\n" "$BOLD" "$CYAN" "$NC"
 printf "\n"
 
-printf "%sServer:%s       %s\n" "$BOLD" "$NC" "$HOSTNAME"
+printf "%sServer:%s       %s (%s)\n" "$BOLD" "$NC" "$HOSTNAME" "$FQDN"
 printf "%sRole:%s         %s{{ motd_role }}%s\n" "$BOLD" "$NC" "$YELLOW" "$NC"
 
 if [[ -n "$IPV4" ]]; then
-    printf "%sIPv4:%s         %s%s%s\n" "$BOLD" "$NC" "$PURPLE" "$IPV4" "$NC"
+    IPV4_ADDR="${IPV4%%/*}"
+    IPV4_PREFIX="${IPV4#*/}"
+    printf "%sIPv4:%s         %s%s%s/%s%s\n" "$BOLD" "$NC" "$PURPLE" "$IPV4_ADDR" "$WHITE" "$IPV4_PREFIX" "$NC"
 fi
 if [[ -n "$IPV6" ]]; then
-    printf "%sIPv6:%s         %s%s%s\n" "$BOLD" "$NC" "$LIGHT_BLUE" "$IPV6" "$NC"
+    IPV6_ADDR="${IPV6%%/*}"
+    IPV6_PREFIX="${IPV6#*/}"
+    printf "%sIPv6:%s         %s%s%s/%s%s\n" "$BOLD" "$NC" "$LIGHT_BLUE" "$IPV6_ADDR" "$WHITE" "$IPV6_PREFIX" "$NC"
 fi
 
 printf "%sKernel:%s       %s\n" "$BOLD" "$NC" "$KERNEL"
@@ -176,8 +182,17 @@ NR > 1 && $1 ~ /^\/dev\// {
     else
         color = green
 
-    printf "  %-20s Used: %5s (%s%3d%%%s) | Free: %5s | Total: %5s\n",
-            $6, $3, color, usage, nc, $4, $2
+    line = sprintf("  %-20s Used: %5s (%s%3d%%%s) | Free: %5s | Total: %5s",
+                   $6, $3, color, usage, nc, $4, $2)
+
+    if ($6 == "/boot/efi")
+        efi[++efi_n] = line
+    else
+        main[++main_n] = line
+}
+END {
+    for (i = 1; i <= main_n; i++) print main[i]
+    for (i = 1; i <= efi_n; i++)  print efi[i]
 }'
 
 printf "\n%sUsers:%s        %s logged in\n" "$BOLD" "$NC" "$USERS"
