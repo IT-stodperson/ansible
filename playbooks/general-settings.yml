@@ -1,0 +1,29 @@
+---
+# General Settings Playbook — Debian
+#
+# Applies general configuration roles to Debian servers: authentication,
+# locale settings, and dynamic MOTD.
+#
+# Usage:
+#   Full run:
+#     ansible-playbook playbooks/general-settings.yml
+#
+#   Run specific sections via tags:
+#     ansible-playbook playbooks/general-settings.yml --tags motd
+#
+#   Limit to a single host:
+#     ansible-playbook playbooks/general-settings.yml --limit wazuh.its.ax
+#
+#   Dry run:
+#     ansible-playbook playbooks/general-settings.yml --check --diff
+
+- name: General Settings Playbook — Debian
+  hosts: debian_servers
+  become: true
+  roles:
+    - role: kanidm
+      tags: kanidm
+    - role: locale_settings
+      tags: locale
+    - role: motd
+      tags: motd

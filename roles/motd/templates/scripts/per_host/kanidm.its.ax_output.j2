@@ -6,8 +6,7 @@ printf "  SSH:               %s\n\n" "$SSH_HEALTH"
 
 printf "%sDocker Containers:%s\n" "$BOLD" "$NC"
 printf "  kanidm/server:     %s\n" "$KANIDM_SERVER_HEALTH"
-printf "  kanidm/radius:     %s\n" "$KANIDM_RADIUS_HEALTH"
-printf "  kanidm/tools:      %s\n\n" "$KANIDM_TOOLS_HEALTH"
+printf "  kanidm/radius:     %s\n\n" "$KANIDM_RADIUS_HEALTH"
 
 if [[ -n "$DOCKER_IMAGES" ]]; then
     printf "%sDocker Images:%s\n" "$BOLD" "$NC"

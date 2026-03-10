@@ -1,0 +1,10 @@
+
+print_separator
+
+printf "%sServices:%s\n" "$BOLD" "$NC"
+printf "  SSH:               %s\n" "$SSH_HEALTH"
+printf "  MariaDB:           %s\n\n" "$MARIADB_HEALTH"
+
+printf "%sConnections:%s\n" "$BOLD" "$NC"
+printf "  SSH (:22):         %s active\n" "$SSH_CONN"
+printf "  MariaDB (:3306):   %s active\n" "$MARIADB_CONN"

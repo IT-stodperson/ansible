@@ -1,0 +1,12 @@
+wait "$pid_svc"
+
+# Service health
+fmt_svc() {
+    [[ "$1" == "active" ]] \
+        && printf "%s●%s Running" "$GREEN" "$NC" \
+        || printf "%s●%s Stopped" "$RED" "$NC"
+}
+
+mapfile -t SVC_STATUS < "$MOTD_TMPDIR/services"
+SSH_HEALTH=$(fmt_svc "${SVC_STATUS[0]}")
+MARIADB_HEALTH=$(fmt_svc "${SVC_STATUS[1]}")
