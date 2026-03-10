@@ -7,8 +7,8 @@ configures unattended security upgrades, and verifies APT directory permissions.
 
 ## Requirements
 
-- Ansible ≥ 2.15
-- Debian 12 (Bookworm)
+- Ansible ≥ 2.20
+- Debian 13 (Trixie)
 - `become: true`
 
 ## Role variables
