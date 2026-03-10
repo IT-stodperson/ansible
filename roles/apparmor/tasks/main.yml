@@ -4,7 +4,7 @@
 
 - name: Install AppArmor and utilities
   ansible.builtin.apt:
-    name:
+    package:
       - apparmor
       - apparmor-utils
     state: present
