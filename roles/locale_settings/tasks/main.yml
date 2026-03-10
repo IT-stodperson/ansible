@@ -13,7 +13,7 @@
 
 - name: Install locales package
   ansible.builtin.apt:
-    name: locales
+    package: locales
     state: present
     update_cache: true
     cache_valid_time: 3600
