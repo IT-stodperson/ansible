@@ -29,6 +29,8 @@ All variables are defined in `defaults/main.yml` and can be overridden.
 
 | Variable | Default | Description |
 |---|---|---|
+| `apparmor_complain_profiles` | `[]` | List of profiles to set to complain mode (log but don't enforce) |
+| `apparmor_remove_profiles` | `[]` | List of profiles to fully unload from the kernel (e.g. `runc` for Docker on kernel 6.12+) |
 | `apparmor_grub_check` | `true` | Whether to check GRUB for `apparmor=0` and fail if found |
 
 Dependencies

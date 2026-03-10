@@ -2,9 +2,11 @@
 ---
 # host_vars for kanidm.its.ax
 
-# The runc AppArmor profile blocks libseccomp.so.2 which prevents
-# Docker containers from starting. Set it to complain mode.
-apparmor_complain_profiles:
+# The runc AppArmor profile breaks Docker on kernel 6.12+.
+# Even in complain mode, the profile prevents runc from executing
+# its memfd-cloned binary (/proc/self/fd/6), causing EACCES.
+# The profile must be fully removed (unloaded) from the kernel.
+apparmor_remove_profiles:
   - runc
 
 # Docker requires overlayfs for its storage driver.
