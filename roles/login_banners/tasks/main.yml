@@ -7,13 +7,15 @@
 # =============================================================================
 
 - name: Deploy login banners
-  ansible.builtin.import_tasks: banners.yml
+  ansible.builtin.import_tasks:
+    file: banners.yml
   tags:
     - login_banners
     - login_banners_deploy
 
 - name: Remove static MOTD files
-  ansible.builtin.import_tasks: motd.yml
+  ansible.builtin.import_tasks:
+    file: motd.yml
   when: login_banners_remove_motd
   tags:
     - login_banners

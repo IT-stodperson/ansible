@@ -51,7 +51,7 @@
 - name: Update APT cache after adding Kanidm PPA
   ansible.builtin.apt:
     update_cache: true
-  when: _kanidm_repo_added.changed
+  when: _kanidm_repo_added is changed
 
 - name: Install kanidm-unixd package
   ansible.builtin.apt:

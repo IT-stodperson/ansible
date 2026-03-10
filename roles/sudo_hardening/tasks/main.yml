@@ -7,19 +7,22 @@
 # =============================================================================
 
 - name: Deploy sudo hardening configuration
-  ansible.builtin.import_tasks: configuration.yml
+  ansible.builtin.import_tasks:
+    file: configuration.yml
   tags:
     - sudo
     - sudo_configuration
 
 - name: Enforce sudoers file permissions
-  ansible.builtin.import_tasks: permissions.yml
+  ansible.builtin.import_tasks:
+    file: permissions.yml
   tags:
     - sudo
     - sudo_permissions
 
 - name: Audit NOPASSWD entries
-  ansible.builtin.import_tasks: audit.yml
+  ansible.builtin.import_tasks:
+    file: audit.yml
   tags:
     - sudo
     - sudo_audit

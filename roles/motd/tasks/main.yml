@@ -18,13 +18,15 @@
 #   ansible-playbook playbooks/motd-deploy.yml --limit wazuh.its.ax
 
 - name: Deploy MOTD cache infrastructure
-  ansible.builtin.import_tasks: cache_infrastructure.yml
+  ansible.builtin.import_tasks:
+    file: cache_infrastructure.yml
   tags:
     - motd
     - motd_cache
 
 - name: Deploy MOTD script
-  ansible.builtin.import_tasks: deploy_script.yml
+  ansible.builtin.import_tasks:
+    file: deploy_script.yml
   tags:
     - motd
     - motd_script

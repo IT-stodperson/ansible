@@ -7,19 +7,22 @@
 # =============================================================================
 
 - name: Configure GRUB password protection
-  ansible.builtin.import_tasks: grub_password.yml
+  ansible.builtin.import_tasks:
+    file: grub_password.yml
   tags:
     - grub
     - grub_password
 
 - name: Configure boot parameters and unrestricted boot
-  ansible.builtin.import_tasks: boot_parameters.yml
+  ansible.builtin.import_tasks:
+    file: boot_parameters.yml
   tags:
     - grub
     - grub_boot_params
 
 - name: Lock down GRUB file permissions
-  ansible.builtin.import_tasks: permissions.yml
+  ansible.builtin.import_tasks:
+    file: permissions.yml
   tags:
     - grub
     - grub_permissions
@@ -28,7 +31,8 @@
   ansible.builtin.meta: flush_handlers
 
 - name: Verify GRUB hardening
-  ansible.builtin.import_tasks: verify.yml
+  ansible.builtin.import_tasks:
+    file: verify.yml
   tags:
     - grub
     - grub_verify
