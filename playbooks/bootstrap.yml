@@ -1,12 +1,15 @@
 ---
-# Bootstrap Playbook — Initial Ansible account setup
+# Bootstrap Playbook — Initial server setup
 #
-# Connects as root to provision the 'ansible' service account on new hosts.
-# This playbook is designed to run ONCE per host, before any other playbooks.
-# After bootstrap, all subsequent playbooks connect as the 'ansible' user.
+# Connects as root to provision the 'ansible' service account and deploy
+# Kanidm centralised authentication on new hosts.  This playbook is
+# designed to run ONCE per host, before any other playbooks.
+# After bootstrap, all subsequent playbooks connect as the 'ansible' user
+# and authenticate via Kanidm.
 #
 # Prerequisites:
 #   - vault_root_password must be defined in inventory/group_vars/all/vault.yml
+#   - vault_kanidm_unixd_token must be defined in inventory/group_vars/all/vault.yml
 #   - .ssh/ansible_key.pub must exist in the project directory
 #
 # Usage:
@@ -16,7 +19,7 @@
 #   Dry run:
 #     ansible-playbook playbooks/bootstrap.yml --limit <new-host> --check --diff
 
-- name: Bootstrap Playbook — Ansible account setup
+- name: Bootstrap — Ansible account setup
   hosts: debian_servers
   become: false
   remote_user: root
@@ -104,4 +107,15 @@
         msg: >-
           Bootstrap complete: '{{ bootstrap_user }}' can sudo
           (got '{{ sudo_check.stdout }}').
-          This host is ready for normal Ansible operations.
+          This host is ready for Kanidm deployment.
+
+- name: Bootstrap — Kanidm centralised authentication
+  hosts: debian_servers
+  become: true
+  remote_user: root
+  vars:
+    ansible_password: "{{ vault_root_password }}"
+    ansible_ssh_extra_args: "-o StrictHostKeyChecking=no"
+  roles:
+    - role: kanidm
+      tags: kanidm
