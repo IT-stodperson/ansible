@@ -77,12 +77,13 @@
   notify: Load audit rules
 
 - name: Warn if no host-specific audit rules found
-  ansible.builtin.debug:
+  ansible.builtin.fail:
     msg: >-
       No audit rules template found at
       templates/audit-rules/{{ inventory_hostname }}.rules.j2 —
       skipping audit rules deployment. Base auditd config was still applied.
   when: not (audit_rules_template.stat.exists | bool)
+  ignore_errors: true  # noqa: ignore-errors
 
 # ===========================================================================
 # PROCESS ACCOUNTING (ACCT-9622)
@@ -147,8 +148,9 @@
 # ===========================================================================
 
 - name: Remind about FSS key setup
-  ansible.builtin.debug:
+  ansible.builtin.fail:
     msg: >-
       MANUAL STEP REQUIRED: Run 'sudo journalctl --setup-keys' on
       {{ inventory_hostname }} to generate Forward Secure Sealing keys.
       Save the verification key in KeePass.
+  ignore_errors: true  # noqa: ignore-errors

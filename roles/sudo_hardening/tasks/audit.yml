@@ -11,15 +11,11 @@
   register: nopasswd_audit
   changed_when: false
 
-- name: Report NOPASSWD entries found
-  ansible.builtin.debug:
-    msg: >-
+- name: Assert no NOPASSWD entries exist in sudoers
+  ansible.builtin.assert:
+    that: nopasswd_audit.stdout | length == 0
+    fail_msg: >-
       NOPASSWD AUDIT [{{ inventory_hostname }}] —
       Found {{ nopasswd_audit.stdout_lines | length }} entry/entries:
       {{ nopasswd_audit.stdout_lines | join(' | ') }}
-  when: nopasswd_audit.stdout | length > 0
-
-- name: Confirm no NOPASSWD entries found
-  ansible.builtin.debug:
-    msg: "NOPASSWD AUDIT [{{ inventory_hostname }}] — No entries found."
-  when: nopasswd_audit.stdout | length == 0
+    success_msg: "NOPASSWD AUDIT [{{ inventory_hostname }}] — No entries found."
