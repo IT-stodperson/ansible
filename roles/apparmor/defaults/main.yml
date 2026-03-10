@@ -3,5 +3,11 @@
 # defaults file for apparmor
 
 # List of AppArmor profiles to set to complain mode after enforcing all.
-# Useful when a profile is too restrictive for a specific service (e.g. runc for Docker).
+# Useful when a profile is too restrictive for a specific service.
 apparmor_complain_profiles: []
+
+# List of AppArmor profiles to completely remove (unload) from the kernel.
+# Use this when complain mode is not sufficient (e.g. runc profile breaks
+# Docker's memfd-based exec on kernel 6.12+ even in complain mode).
+# Profiles are removed after enforce and complain tasks run.
+apparmor_remove_profiles: []

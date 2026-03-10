@@ -59,8 +59,10 @@ kernel.unprivileged_bpf_disabled = 1
 # Prevent unprivileged users from creating user namespaces
 kernel.unprivileged_userns_clone = {{ sysctl_unprivileged_userns_clone }}
 
+{% if _yama_available.stat.exists | default(false) %}
 # Restrict ptrace scope (3 = no processes can be traced)
 kernel.yama.ptrace_scope = {{ sysctl_ptrace_scope }}
+{% endif %}
 
 # Harden BPF JIT compiler against JIT spraying attacks
 net.core.bpf_jit_harden = 2
