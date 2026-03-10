@@ -3,8 +3,9 @@
 # THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
 #
 # Purpose:
-#   Dynamic MOTD script for Kanidm identity server.
-#   Displays system info, Docker container health, and connections.
+#   Dynamic MOTD script — base system information + per-host extensions.
+#   Common to every server: system info, uptime, memory, disk, security.
+#   Per-host sections are included from per_host/<hostname>_*.j2 snippets.
 #
 # Source:
 #   Template: {{ template_path }}
@@ -27,6 +28,8 @@ readonly RED=$'\033[0;31m'
 readonly GREEN=$'\033[0;32m'
 readonly YELLOW=$'\033[0;33m'
 readonly CYAN=$'\033[0;36m'
+readonly PURPLE=$'\033[0;35m'
+readonly LIGHT_BLUE=$'\033[1;34m'
 readonly NC=$'\033[0m'
 
 # ── Temp file cleanup ───────────────────────────────────────────────
@@ -51,18 +54,8 @@ else
     pid_journal=""
 fi
 
-# Service health — SSH via systemctl
-systemctl is-active ssh 2>/dev/null \
-    > "$MOTD_TMPDIR/services" &
-pid_svc=$!
-
-# Docker container health
-pid_docker=""
-if command -v docker &>/dev/null; then
-    docker ps --format '{{ '{{' }}.Names{{ '}}' }}\t{{ '{{' }}.Status{{ '}}' }}' 2>/dev/null \
-        > "$MOTD_TMPDIR/docker" &
-    pid_docker=$!
-fi
+# Per-host background jobs and data collection
+{% include 'scripts/per_host/' + inventory_hostname + '_init.j2' ignore missing %}
 
 # ── Collect fast data while background jobs run ─────────────────────
 
@@ -74,16 +67,21 @@ CPU_MODEL=$(awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo)
 CPU_CORES=$(nproc 2>/dev/null)
 PROCESSES=$(find /proc -maxdepth 1 -name '[0-9]*' -type d 2>/dev/null | wc -l)
 MEMORY=$(free -m | awk 'NR==2{printf "Used: %dMB (%.1f%%) | Available: %dMB | Total: %dMB", $3, $3*100/$2, $7, $2}')
-IP=$(hostname -I | awk '{print $1}')
 
 USERS=$(who 2>/dev/null | wc -l)
 
-# Network connections — single ss call
-read -r SSH_CONN HTTPS_CONN LDAPS_CONN <<< "$(ss -Htn state established | awk '
-    $3 ~ /:22$/  {a++}
-    $3 ~ /:443$/ {b++}
-    $3 ~ /:636$/ {c++}
-    END {print a+0, b+0, c+0}')"
+# ── IP addresses (IPv4 + IPv6 with prefix length) ──────────────────
+
+DEFAULT_IF=$(ip route show default 2>/dev/null | awk '{print $5; exit}')
+
+IPV4=""
+IPV6=""
+if [[ -n "$DEFAULT_IF" ]]; then
+    IPV4=$(ip -4 addr show dev "$DEFAULT_IF" 2>/dev/null \
+        | awk '/inet / {print $2; exit}')
+    IPV6=$(ip -6 addr show dev "$DEFAULT_IF" scope global 2>/dev/null \
+        | awk '/inet6/ {print $2; exit}')
+fi
 
 # ── Package updates (from cache) ───────────────────────────────────
 
@@ -111,8 +109,6 @@ fi
 # ── Wait for background jobs and collect results ────────────────────
 
 [[ -n "$pid_journal" ]] && wait "$pid_journal"
-wait "$pid_svc"
-[[ -n "$pid_docker" ]] && wait "$pid_docker"
 
 # Failed logins
 FAILED_LOGINS=$(<"$MOTD_TMPDIR/failed")
@@ -128,41 +124,8 @@ else
     FAILED_LOGIN_DISPLAY="${GREEN}0${NC}"
 fi
 
-# Service health
-fmt_svc() {
-    [[ "$1" == "active" ]] \
-        && printf "%s●%s Running" "$GREEN" "$NC" \
-        || printf "%s●%s Stopped" "$RED" "$NC"
-}
-
-mapfile -t SVC_STATUS < "$MOTD_TMPDIR/services"
-SSH_HEALTH=$(fmt_svc "${SVC_STATUS[0]}")
-
-# Docker container health
-fmt_container() {
-    local name="$1"
-    local status
-    if [[ -s "$MOTD_TMPDIR/docker" ]]; then
-        status=$(awk -F'\t' -v n="$name" '$1 == n {print $2}' "$MOTD_TMPDIR/docker")
-    fi
-    if [[ -z "$status" ]]; then
-        printf "%s●%s Not found" "$RED" "$NC"
-    elif [[ "$status" == *"Up"* ]]; then
-        printf "%s●%s %s" "$GREEN" "$NC" "$status"
-    else
-        printf "%s●%s %s" "$RED" "$NC" "$status"
-    fi
-}
-
-KANIDM_SERVER_HEALTH=$(fmt_container "kanidm-server")
-KANIDM_RADIUS_HEALTH=$(fmt_container "kanidm-radius")
-
-# Docker images
-DOCKER_IMAGES=""
-if command -v docker &>/dev/null; then
-    DOCKER_IMAGES=$(docker images --format '{{ '{{' }}.Repository{{ '}}' }}:{{ '{{' }}.Tag{{ '}}' }}\t{{ '{{' }}.Size{{ '}}' }}' 2>/dev/null \
-        | grep -i kanidm | sort)
-fi
+# Per-host: wait for background jobs and process results
+{% include 'scripts/per_host/' + inventory_hostname + '_process.j2' ignore missing %}
 
 # ── Output ──────────────────────────────────────────────────────────
 
@@ -178,8 +141,15 @@ printf "%s%s╚═════════════════════�
 printf "\n"
 
 printf "%sServer:%s       %s\n" "$BOLD" "$NC" "$HOSTNAME"
-printf "%sRole:%s         %sKanidm Identity Server%s\n" "$BOLD" "$NC" "$YELLOW" "$NC"
-printf "%sIP Address:%s   %s\n" "$BOLD" "$NC" "$IP"
+printf "%sRole:%s         %s{{ motd_role }}%s\n" "$BOLD" "$NC" "$YELLOW" "$NC"
+
+if [[ -n "$IPV4" ]]; then
+    printf "%sIPv4:%s         %s%s%s\n" "$BOLD" "$NC" "$PURPLE" "$IPV4" "$NC"
+fi
+if [[ -n "$IPV6" ]]; then
+    printf "%sIPv6:%s         %s%s%s\n" "$BOLD" "$NC" "$LIGHT_BLUE" "$IPV6" "$NC"
+fi
+
 printf "%sKernel:%s       %s\n" "$BOLD" "$NC" "$KERNEL"
 
 print_separator
@@ -218,26 +188,7 @@ if [[ -n "$REBOOT_REQUIRED" ]]; then
     printf "%sStatus:%s       %b\n" "$BOLD" "$NC" "$REBOOT_REQUIRED"
 fi
 
-print_separator
-
-printf "%sServices:%s\n" "$BOLD" "$NC"
-printf "  SSH:               %s\n\n" "$SSH_HEALTH"
-
-printf "%sDocker Containers:%s\n" "$BOLD" "$NC"
-printf "  kanidm-server:     %s\n" "$KANIDM_SERVER_HEALTH"
-printf "  kanidm-radius:     %s\n\n" "$KANIDM_RADIUS_HEALTH"
-
-if [[ -n "$DOCKER_IMAGES" ]]; then
-    printf "%sDocker Images:%s\n" "$BOLD" "$NC"
-    while IFS=$'\t' read -r img size; do
-        printf "  %-35s %s\n" "$img" "$size"
-    done <<< "$DOCKER_IMAGES"
-    printf "\n"
-fi
-
-printf "%sConnections:%s\n" "$BOLD" "$NC"
-printf "  SSH (:22):         %s active\n" "$SSH_CONN"
-printf "  Web GUI (:443):    %s active\n" "$HTTPS_CONN"
-printf "  LDAPs (:636):      %s active\n" "$LDAPS_CONN"
+# Per-host output sections
+{% include 'scripts/per_host/' + inventory_hostname + '_output.j2' ignore missing %}
 
 print_separator

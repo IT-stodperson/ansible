@@ -10,8 +10,8 @@ motd_cache_timer_boot_delay: "2min"
 motd_cache_timer_interval: "6h"
 
 # ---------------------------------------------------------------------------
-# MOTD script deployment
+# MOTD display settings
 # ---------------------------------------------------------------------------
-# Set motd_script to deploy a host-specific MOTD script.
-# Example: motd_script: 10-custom-wazuh
-# Templates are stored in: roles/motd/templates/scripts/<name>.j2
+# Server role label shown in the MOTD header.
+# Override in host_vars/ for each server.
+motd_role: "Server"

@@ -1,0 +1,24 @@
+
+print_separator
+
+printf "%s%s╔══════════════════════════════════════════════════════════════╗%s\n" "$BOLD" "$CYAN" "$NC"
+printf "%s%s║                     ANSIBLE USAGE GUIDE                      ║%s\n" "$BOLD" "$CYAN" "$NC"
+printf "%s%s╚══════════════════════════════════════════════════════════════╝%s\n" "$BOLD" "$CYAN" "$NC"
+printf "\n"
+
+printf "  All playbooks must be run as the %sansible%s user.\n" "$BOLD" "$NC"
+printf "  Switch to it with:\n\n"
+printf "    %s$ su - ansible%s\n\n" "$CYAN" "$NC"
+
+printf "  The Ansible repository is located at:\n\n"
+printf "    %shttps://github.com/IT-stodperson/ansible%s\n\n" "$CYAN" "$NC"
+
+printf "  Common commands:\n\n"
+printf "    %s# Run a playbook%s\n" "$YELLOW" "$NC"
+printf "    %s$ ansible-playbook playbooks/<playbook>.yml%s\n\n" "$CYAN" "$NC"
+printf "    %s# Run against a specific host%s\n" "$YELLOW" "$NC"
+printf "    %s$ ansible-playbook playbooks/<playbook>.yml --limit <host>%s\n\n" "$CYAN" "$NC"
+printf "    %s# Dry run (check mode)%s\n" "$YELLOW" "$NC"
+printf "    %s$ ansible-playbook playbooks/<playbook>.yml --check --diff%s\n\n" "$CYAN" "$NC"
+printf "    %s# Pull latest changes from the repo%s\n" "$YELLOW" "$NC"
+printf "    %s$ git pull%s\n" "$CYAN" "$NC"

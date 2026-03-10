@@ -1,0 +1,11 @@
+
+print_separator
+
+printf "%sServices:%s\n" "$BOLD" "$NC"
+printf "  SSH:               %s\n" "$SSH_HEALTH"
+printf "  Apache2:           %s\n\n" "$APACHE_HEALTH"
+
+printf "%sConnections:%s\n" "$BOLD" "$NC"
+printf "  SSH (:22):         %s active\n" "$SSH_CONN"
+printf "  HTTP (:80):        %s active\n" "$HTTP_CONN"
+printf "  HTTPS (:443):      %s active\n" "$HTTPS_CONN"

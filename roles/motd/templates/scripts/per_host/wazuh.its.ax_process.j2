@@ -1,0 +1,24 @@
+wait "$pid_svc"
+[[ -n "$pid_agents" ]] && wait "$pid_agents"
+
+# Service health
+fmt_svc() {
+    [[ "$1" == "active" ]] \
+        && printf "%s●%s Running" "$GREEN" "$NC" \
+        || printf "%s●%s Stopped" "$RED" "$NC"
+}
+
+mapfile -t SVC_STATUS < "$MOTD_TMPDIR/services"
+SSH_HEALTH=$(fmt_svc "${SVC_STATUS[0]}")
+WAZUH_MANAGER_HEALTH=$(fmt_svc "${SVC_STATUS[1]}")
+WAZUH_INDEXER_HEALTH=$(fmt_svc "${SVC_STATUS[2]}")
+WAZUH_DASHBOARD_HEALTH=$(fmt_svc "${SVC_STATUS[3]}")
+
+# Wazuh agents
+AGENT_INFO=""
+if [[ -s "$MOTD_TMPDIR/agents" ]]; then
+    agent_list=$(<"$MOTD_TMPDIR/agents")
+    ACTIVE_AGENTS=$(grep -c "Active" <<< "$agent_list")
+    TOTAL_AGENTS=$(grep -cE "Active|Disconnected|Never connected" <<< "$agent_list")
+    AGENT_INFO="${ACTIVE_AGENTS} active / ${TOTAL_AGENTS} total"
+fi

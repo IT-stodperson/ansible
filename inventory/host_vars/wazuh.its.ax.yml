@@ -1,1 +1,3 @@
 nproc_hard_limit: 4096
+
+motd_role: "Wazuh SIEM Server"

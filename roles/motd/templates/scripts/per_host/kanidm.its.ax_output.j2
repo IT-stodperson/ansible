@@ -1,0 +1,22 @@
+
+print_separator
+
+printf "%sServices:%s\n" "$BOLD" "$NC"
+printf "  SSH:               %s\n\n" "$SSH_HEALTH"
+
+printf "%sDocker Containers:%s\n" "$BOLD" "$NC"
+printf "  kanidm-server:     %s\n" "$KANIDM_SERVER_HEALTH"
+printf "  kanidm-radius:     %s\n\n" "$KANIDM_RADIUS_HEALTH"
+
+if [[ -n "$DOCKER_IMAGES" ]]; then
+    printf "%sDocker Images:%s\n" "$BOLD" "$NC"
+    while IFS=$'\t' read -r img size; do
+        printf "  %-35s %s\n" "$img" "$size"
+    done <<< "$DOCKER_IMAGES"
+    printf "\n"
+fi
+
+printf "%sConnections:%s\n" "$BOLD" "$NC"
+printf "  SSH (:22):         %s active\n" "$SSH_CONN"
+printf "  Web GUI (:443):    %s active\n" "$HTTPS_CONN"
+printf "  LDAPs (:636):      %s active\n" "$LDAPS_CONN"
