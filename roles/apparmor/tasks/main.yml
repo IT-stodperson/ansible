@@ -20,7 +20,7 @@
 - name: Find AppArmor profile files
   ansible.builtin.find:
     paths: /etc/apparmor.d
-    maxdepth: 1
+    depth: 1
     file_type: file
   register: apparmor_files
 
