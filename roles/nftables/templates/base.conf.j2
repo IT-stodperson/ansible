@@ -270,6 +270,12 @@ table inet filter {
 
         chain forward {
                 type filter hook forward priority filter; policy drop;
+
+                ct state { established, related } accept comment "Forwarded established/related"
+                ct state invalid drop comment "Drop invalid forwarded"
+
+{% include 'per_host/' + inventory_hostname + '_forward.j2' ignore missing %}
+
                 limit rate 5/minute log prefix "[NFT FWD drop] "
                 counter drop
         }

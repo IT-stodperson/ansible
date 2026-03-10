@@ -1,0 +1,4 @@
+
+                # Allow forwarded traffic to/from Docker container networks
+                iifname "docker0" accept comment "Docker bridge outbound"
+                oifname "docker0" accept comment "Docker bridge inbound"
