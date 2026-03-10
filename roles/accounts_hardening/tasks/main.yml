@@ -7,19 +7,19 @@
 # =============================================================================
 
 - name: Configure shadow password defaults (login.defs)
-  ansible.builtin.import_tasks: login_defs.yml
   tags:
     - accounts
     - accounts_login_defs
+  ansible.builtin.import_tasks: login_defs.yml
 
 - name: Enforce password aging on existing accounts
-  ansible.builtin.import_tasks: password_aging.yml
   tags:
     - accounts
     - accounts_aging
+  ansible.builtin.import_tasks: password_aging.yml
 
 - name: Harden shell environment
-  ansible.builtin.import_tasks: shell_hardening.yml
   tags:
     - accounts
     - accounts_shell
+  ansible.builtin.import_tasks: shell_hardening.yml
