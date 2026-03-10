@@ -21,8 +21,6 @@
   hosts: debian_servers
   become: true
   roles:
-    - role: kanidm
-      tags: kanidm
     - role: locale_settings
       tags: locale
     - role: motd
