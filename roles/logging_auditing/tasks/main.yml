@@ -92,7 +92,7 @@
 
 - name: Install acct (process accounting)
   ansible.builtin.apt:
-    name: acct
+    package: acct
     state: present
     update_cache: true
     cache_valid_time: 3600
@@ -105,7 +105,7 @@
 
 - name: Install sysstat
   ansible.builtin.apt:
-    name: sysstat
+    package: sysstat
     state: present
     update_cache: true
     cache_valid_time: 3600
