@@ -28,7 +28,7 @@
   pre_tasks:
     - name: Ensure sudo is installed
       ansible.builtin.apt:
-        name: sudo
+        package: sudo
         state: present
         update_cache: true
 
