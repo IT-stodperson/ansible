@@ -35,3 +35,5 @@
   roles:
     - role: kanidm
       tags: kanidm
+    - role: ssh_hardening
+      tags: ssh
