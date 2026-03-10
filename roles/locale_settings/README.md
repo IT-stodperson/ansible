@@ -7,8 +7,8 @@ when the current locale differs from the desired configuration.
 
 ## Requirements
 
-- Ansible ≥ 2.15
-- Debian 12 (Bookworm)
+- Ansible ≥ 2.20
+- Debian 13 (Trixie)
 - `become: true`
 - Collection: `community.general` (for `community.general.locale_gen`)
 
