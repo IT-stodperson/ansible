@@ -4,7 +4,7 @@
 
 - name: Ensure sudo is installed
   ansible.builtin.apt:
-    name: sudo
+    package: sudo
     state: present
 
 - name: Deploy sudo security hardening configuration
