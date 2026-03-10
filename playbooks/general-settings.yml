@@ -25,3 +25,5 @@
       tags: locale
     - role: motd
       tags: motd
+    - role: login_banners
+      tags: login_banners
