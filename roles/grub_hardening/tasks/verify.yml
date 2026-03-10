@@ -2,11 +2,26 @@
 ---
 # grub_hardening — verification checks
 
-- name: Verify GRUB password protection is configured
+- name: Check GRUB superusers entry
   ansible.builtin.command:
-    cmd: grep -E "^set superusers|^password_pbkdf2" /boot/grub/grub.cfg
-  register: grub_verify
+    cmd: grep -qE "^set superusers" /boot/grub/grub.cfg
+  register: _grub_superusers
   changed_when: false
-  failed_when: >
-    'set superusers' not in (grub_verify.stdout | default('')) or
-    'password_pbkdf2' not in (grub_verify.stdout | default(''))
+  failed_when: false
+
+- name: Check GRUB password_pbkdf2 entry
+  ansible.builtin.command:
+    cmd: grep -qE "^password_pbkdf2" /boot/grub/grub.cfg
+  register: _grub_password
+  changed_when: false
+  failed_when: false
+
+- name: Assert GRUB password protection is properly configured
+  ansible.builtin.assert:
+    that:
+      - _grub_superusers.rc == 0
+      - _grub_password.rc == 0
+    fail_msg: >-
+      GRUB password protection is not fully configured in /boot/grub/grub.cfg.
+      Expected both a 'set superusers' line and a 'password_pbkdf2' line.
+    success_msg: GRUB password protection is properly configured.

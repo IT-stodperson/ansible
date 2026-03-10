@@ -20,44 +20,57 @@ This repository is the central source of truth for all Ansible playbooks, roles,
 ```
 .
 ├── ansible.cfg              # Ansible configuration (user, paths, vault, SSH)
+├── requirements.yml         # Ansible Galaxy collection dependencies
 ├── inventory/
 │   ├── hosts.yml            # Host inventory (proxmox, debian_servers)
 │   ├── group_vars/          # Group-scoped variables and vault secrets
 │   └── host_vars/           # Per-host variable overrides
 ├── playbooks/
-│   ├── security-hardening.yml
-│   ├── nftables-hardening.yml
-│   └── motd-deploy.yml
+│   ├── bootstrap.yml        # One-time initial server setup (root → kanidm)
+│   ├── security-hardening.yml  # Full security hardening suite
+│   └── general-settings.yml    # Locale, MOTD, and login banners
 └── roles/
     ├── accounts_hardening   # Password policies, shell hardening, timeouts
     ├── apparmor             # Mandatory access control profiles
-    ├── apt_hardening        # Package manager lockdown
-    ├── cron_hardening       # Cron access whitelist
-    ├── grub_hardening       # Bootloader password & kernel parameters
-    ├── kernel_hardening     # Sysctl, module blacklisting, limits
-    ├── logging_auditing     # Audit daemon & syslog configuration
+    ├── apt_hardening        # Package manager lockdown & unattended upgrades
+    ├── cron_hardening       # Cron access whitelist & permission hardening
+    ├── grub_hardening       # Bootloader password & kernel boot parameters
+    ├── kanidm               # Kanidm Unix daemon (centralised authentication)
+    ├── kernel_hardening     # Sysctl, module blacklisting, compiler lockdown
+    ├── locale_settings      # System locale generation & defaults
+    ├── logging_auditing     # journald, auditd, acct, sysstat hardening
     ├── login_banners        # Console & SSH login banners
     ├── motd                 # Dynamic message-of-the-day scripts
     ├── nftables             # Firewall rules (nftables)
-    ├── ntp                  # Time synchronisation hardening
-    ├── pam_hardening        # PAM module configuration
-    ├── ssh_hardening        # SSH daemon hardening
-    └── sudo_hardening       # Sudoers policies & auditing
+    ├── ntp                  # Time synchronisation (systemd-timesyncd)
+    ├── pam_hardening        # PAM: faillock, pwquality, pwhistory, su
+    ├── ssh_hardening        # SSH daemon hardening & moduli filtering
+    ├── sudo_hardening       # Sudoers policies, logging & NOPASSWD audit
+    └── systemd_hardening    # systemd service security override drop-ins
 ```
 
 ## Target hosts
 
-| Group             | Hosts                                                  |
-| ----------------- | ------------------------------------------------------ |
-| `proxmox`         | pve1.its.ax, pve2.its.ax, pve3.its.ax                 |
-| `debian_servers`  | wazuh.its.ax, webftp.its.ax, ansible.its.ax, mariadb.its.ax |
+| Group             | Hosts                                                                 |
+| ----------------- | --------------------------------------------------------------------- |
+| `proxmox`         | pve1.its.ax, pve2.its.ax, pve3.its.ax                                |
+| `debian_servers`  | wazuh.its.ax, webftp.its.ax, ansible.its.ax, mariadb.its.ax          |
 
 ## Prerequisites
 
-- Ansible >= 2.20
-- Debian-based targets (Bookworm / Trixie, Ubuntu Jammy / Noble)
+- Ansible ≥ 2.15
+- Debian 12 (Bookworm) targets
 - The `ansible` SSH user with sudo privileges on all managed hosts
 - The vault password file (`.vault_pass`) in the repository root
+- Collections installed: `ansible-galaxy collection install -r requirements.yml`
+
+### Required vault variables
+
+| Variable | Used by |
+|---|---|
+| `vault_root_password` | `bootstrap.yml` |
+| `vault_kanidm_unixd_token` | `kanidm` role |
+| `vault_grub_password` | `grub_hardening` role |
 
 ---
 
@@ -105,49 +118,53 @@ sudo git push -u origin main
 
 ### First-time bootstrap
 
-To run the very first YAML (the bootstrap), you need to go to the target server and temporarily enable SSH root login:
+Connects as `root` to install `sudo`, deploy Kanidm authentication, and harden SSH. Run **once** per new host:
 
-1. On the target server, edit the SSH daemon configuration:
-   ```bash
-   sudo nano /etc/ssh/sshd_config
-   ```
-2. Set `PermitRootLogin yes`.
-3. Restart the SSH daemon:
-   ```bash
-   sudo systemctl restart sshd
-   ```
-4. Run the bootstrap playbook from the Ansible controller.
-5. Once the bootstrap is complete, go back to the target server and set `PermitRootLogin no` (or remove the line), then restart the SSH daemon again:
-   ```bash
-   sudo systemctl restart sshd
-   ```
+```bash
+ansible-playbook playbooks/bootstrap.yml --limit <new-host>
+```
 
-### General usage
+After bootstrap, all subsequent playbooks connect as the `ansible` Kanidm user.
 
-Apply the full security hardening baseline:
+### Security hardening
+
+Apply the full security hardening baseline to all servers:
 
 ```bash
 ansible-playbook playbooks/security-hardening.yml
 ```
 
-Dry-run with diff output (no changes applied):
+Run only a specific role using tags:
 
 ```bash
+ansible-playbook playbooks/security-hardening.yml --tags grub
+ansible-playbook playbooks/security-hardening.yml --tags "pam,sudo"
+```
+
+Available tags: `grub`, `kernel`, `accounts`, `pam`, `sudo`, `ssh`,
+`cron`, `apt`, `apparmor`, `nftables`, `logging`, `ntp`, `systemd`
+
+### General settings
+
+Apply locale, MOTD, and login banner configuration:
+
+```bash
+ansible-playbook playbooks/general-settings.yml
+ansible-playbook playbooks/general-settings.yml --tags motd
+```
+
+Available tags: `locale`, `motd`, `login_banners`
+
+### Common options
+
+```bash
+# Dry-run with diff output (no changes applied)
 ansible-playbook playbooks/security-hardening.yml --check --diff
-```
 
-Run a specific set of tasks using tags:
-
-```bash
-ansible-playbook playbooks/security-hardening.yml --tags accounts_shell
-```
-
-Target a single host:
-
-```bash
+# Target a single host
 ansible-playbook playbooks/security-hardening.yml --limit wazuh.its.ax
 ```
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT-0 — see individual files for SPDX headers.

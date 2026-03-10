@@ -1,83 +1,39 @@
-ntp
-===
+#SPDX-License-Identifier: MIT-0
+# ntp
 
-Configure NTP via systemd-timesyncd on Debian-based servers. This role
-deploys a secure timesyncd configuration with trusted NTP sources and
-ensures the service is enabled and running.
+Configure time synchronisation via `systemd-timesyncd` on Debian-based
+servers. The role installs the package, creates a drop-in configuration
+directory, deploys a hardened `timesyncd.conf` from a Jinja2 template,
+and ensures the service is enabled and running.
 
-Requirements
-------------
+## Requirements
 
-- Ansible >= 2.20
-- Target must be a Debian-based system (Debian bookworm/trixie, Ubuntu jammy/noble).
-- The role requires root privileges (`become: true`).
+- Ansible ≥ 2.15
+- Debian 12 (Bookworm) targets
+- `ansible` SSH user with sudo privileges
 
-Role Variables
---------------
+## Role variables
 
-This role has no configurable default variables. NTP server
-configuration is managed through the template
-`templates/60-timesyncd.conf.j2`.
+There are no user-facing default variables for this role. NTP server
+addresses and other timesyncd settings are controlled through the
+template at:
 
-### What the role configures (non-variable)
+```
+roles/ntp/templates/60-timesyncd.conf.j2
+```
 
-- `/etc/systemd/timesyncd.conf.d/60-timesyncd.conf` — NTP server
-  configuration deployed from template
-- `systemd-timesyncd` service — enabled and started
+Edit the template directly to change NTP pool servers, fallback NTP,
+or other `timesyncd.conf` options.
 
-Dependencies
-------------
-
-None.
-
-Use Cases
----------
-
-### 1. Apply NTP configuration with defaults
+## Example playbook
 
 ```yaml
 - hosts: debian_servers
-  become: true
   roles:
-    - ntp
+    - role: ntp
+      tags: ntp
 ```
 
-```bash
-ansible-playbook -i inventory site.yml
-```
+## License
 
-### 2. Run against a single host
-
-```bash
-ansible-playbook -i inventory site.yml --limit webserver01
-```
-
-### 3. Dry-run (check mode)
-
-Preview changes without modifying the system:
-
-```bash
-ansible-playbook -i inventory site.yml --check --diff
-```
-
-### 4. Use in a larger playbook with other hardening roles
-
-```yaml
-- hosts: debian_servers
-  become: true
-  roles:
-    - ntp
-    - kernel_hardening
-    - accounts_hardening
-    - ssh_hardening
-```
-
-License
--------
-
-MIT
-
-Author Information
-------------------
-
-Tobias Svenblad / IT-stodperson
+MIT-0

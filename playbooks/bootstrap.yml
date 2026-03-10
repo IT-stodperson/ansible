@@ -25,15 +25,19 @@
     ansible_password: "{{ vault_root_password }}"
     ansible_ssh_extra_args: "-o StrictHostKeyChecking=no"
 
-  pre_tasks:
+  tasks:
     - name: Ensure sudo is installed
       ansible.builtin.apt:
         package: sudo
         state: present
         update_cache: true
 
-  roles:
-    - role: kanidm
+    - name: Deploy Kanidm centralised authentication
+      ansible.builtin.import_role:
+        name: kanidm
       tags: kanidm
-    - role: ssh_hardening
+
+    - name: Harden SSH configuration
+      ansible.builtin.import_role:
+        name: ssh_hardening
       tags: ssh
