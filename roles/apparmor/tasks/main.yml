@@ -42,8 +42,7 @@
     label: "{{ item.item.path }}"
   when: item.rc == 0
   register: aa_enforce_result
-  changed_when: >-
-    'Setting' in ((aa_enforce_result.results | last).stdout | default(''))
+  changed_when: "'Setting' in (aa_enforce_result.stdout | default(''))"
 
 - name: Set specified profiles to complain mode
   ansible.builtin.command:
@@ -51,8 +50,7 @@
   loop: "{{ apparmor_complain_profiles }}"
   when: apparmor_complain_profiles | length > 0
   register: aa_complain_result
-  changed_when: >-
-    'Setting' in ((aa_complain_result.results | last).stdout | default(''))
+  changed_when: "'Setting' in (aa_complain_result.stdout | default(''))"
 
 - name: Disable specified AppArmor profiles persistently
   loop: "{{ apparmor_remove_profiles }}"
@@ -69,10 +67,10 @@
   loop: "{{ apparmor_remove_profiles }}"
   when: apparmor_remove_profiles | length > 0
   register: aa_remove_result
-  changed_when: (aa_remove_result.results | last).rc == 0
+  changed_when: aa_remove_result.rc == 0
   failed_when:
-    - (aa_remove_result.results | last).rc != 0
-    - "'is not loaded' not in ((aa_remove_result.results | last).stderr | default(''))"
+    - aa_remove_result.rc != 0
+    - "'is not loaded' not in (aa_remove_result.stderr | default(''))"
 
 - name: Check that AppArmor is not disabled in GRUB defaults
   ansible.builtin.shell:
