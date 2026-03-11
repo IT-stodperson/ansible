@@ -11,11 +11,24 @@
   register: nopasswd_audit
   changed_when: false
 
-- name: Assert no NOPASSWD entries exist in sudoers
+- name: Compute list of expected NOPASSWD users
+  ansible.builtin.set_fact:
+    _sudo_nopasswd_expected_users: >-
+      {{ (sudo_service_accounts | map(attribute='name') | list)
+         + sudo_nopasswd_audit_exclude_users }}
+
+- name: Filter out expected NOPASSWD entries from audit results
+  ansible.builtin.set_fact:
+    _sudo_nopasswd_unexpected: >-
+      {{ nopasswd_audit.stdout_lines
+         | reject('search', ':[0-9]+:(' + (_sudo_nopasswd_expected_users | join('|')) + ') ')
+         | list }}
+
+- name: Assert no unexpected NOPASSWD entries exist in sudoers
   ansible.builtin.assert:
-    that: nopasswd_audit.stdout | length == 0
+    that: _sudo_nopasswd_unexpected | length == 0
     fail_msg: >-
       NOPASSWD AUDIT [{{ inventory_hostname }}] —
-      Found {{ nopasswd_audit.stdout_lines | length }} entry/entries:
-      {{ nopasswd_audit.stdout_lines | join(' | ') }}
-    success_msg: "NOPASSWD AUDIT [{{ inventory_hostname }}] — No entries found."
+      Found {{ _sudo_nopasswd_unexpected | length }} unexpected entry/entries:
+      {{ _sudo_nopasswd_unexpected | join(' | ') }}
+    success_msg: "NOPASSWD AUDIT [{{ inventory_hostname }}] — No unexpected entries found."
