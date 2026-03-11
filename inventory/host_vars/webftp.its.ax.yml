@@ -19,3 +19,7 @@ kanidm_pam_allowed_login_groups:
   - ansible
 
 motd_role: "Apache2 Web Server"
+
+# www-data requires passwordless sudo on this host (managed outside sudo_hardening role)
+sudo_nopasswd_audit_exclude_users:
+  - www-data

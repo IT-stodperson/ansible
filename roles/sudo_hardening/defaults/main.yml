@@ -63,3 +63,11 @@ sudo_service_accounts:
   - name: ansible
     privileges: "ALL=(ALL) NOPASSWD: ALL"
     comment: Ansible automation — requires passwordless sudo for remote management
+
+# ---------------------------------------------------------------------------
+# Audit Exclusions
+# ---------------------------------------------------------------------------
+
+# Additional users with NOPASSWD entries managed outside this role.
+# Entries for users in sudo_service_accounts are excluded automatically.
+sudo_nopasswd_audit_exclude_users: []
