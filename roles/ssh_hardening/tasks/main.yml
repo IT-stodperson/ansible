@@ -3,21 +3,6 @@
 # SSH hardening for Debian servers.
 
 # ===========================================================================
-# PREREQUISITES
-# ===========================================================================
-
-- name: Ensure ansible group exists
-  ansible.builtin.group:
-    name: ansible
-    state: present
-
-- name: Ensure ansible user is in ansible group
-  ansible.builtin.user:
-    name: ansible
-    groups: ansible
-    append: true
-
-# ===========================================================================
 # DIFFIE-HELLMAN MODULI
 # ===========================================================================
 
