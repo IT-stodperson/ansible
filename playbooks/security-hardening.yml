@@ -27,8 +27,6 @@
       tags: accounts
     - role: pam_hardening
       tags: pam
-    - role: sudo_hardening
-      tags: sudo
     - role: ssh_hardening
       tags: ssh
     - role: cron_hardening
