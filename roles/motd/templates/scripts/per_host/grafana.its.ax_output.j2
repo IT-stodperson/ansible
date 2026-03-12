@@ -1,0 +1,11 @@
+
+print_separator
+
+printf "%sServices:%s\n" "$BOLD" "$NC"
+printf "  SSH:               %s\n" "$SSH_HEALTH"
+printf "  Grafana:           %s\n\n" "$GRAFANA_HEALTH"
+
+printf "%sConnections:%s\n" "$BOLD" "$NC"
+printf "  SSH (:22):         %s active\n" "$SSH_CONN"
+printf "  HTTPS (:443):      %s active\n" "$HTTPS_CONN"
+printf "  Grafana (:3000):   %s active\n" "$GRAFANA_CONN"

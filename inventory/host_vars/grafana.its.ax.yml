@@ -1,0 +1,5 @@
+#SPDX-License-Identifier: MIT-0
+---
+# host_vars for grafana.its.ax
+
+motd_role: "Grafana Monitoring Server"

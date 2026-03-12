@@ -1,0 +1,29 @@
+
+        # ====================================================================
+        # Grafana HTTPS Access Control Sets
+        # ====================================================================
+        # Teacher + Teacher VPN networks only
+
+        set grafana_https_allowed_v4 {
+                type ipv4_addr
+                flags interval
+                elements = { {{ nft_ssh_teacher_v4 | join(', ') }} }
+        }
+
+        set grafana_https_allowed_v6 {
+                type ipv6_addr
+                flags interval
+                elements = { {{ nft_ssh_teacher_v6 | join(', ') }} }
+        }
+
+        # Grafana HTTPS: per-IP SYN rate
+        set grafana_https_synrate_v4 { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 10s; }
+        set grafana_https_synrate_v6 { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 10s; }
+        set grafana_https_synlog_v4  { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set grafana_https_synlog_v6  { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+
+        # Grafana HTTPS: per-IP concurrent connections
+        set grafana_https_connlimit_v4 { type ipv4_addr; flags dynamic; size 65535; }
+        set grafana_https_connlimit_v6 { type ipv6_addr; flags dynamic; size 65535; }
+        set grafana_https_connlog_v4   { type ipv4_addr; flags dynamic,timeout; size 65535; timeout 1m; }
+        set grafana_https_connlog_v6   { type ipv6_addr; flags dynamic,timeout; size 65535; timeout 1m; }
