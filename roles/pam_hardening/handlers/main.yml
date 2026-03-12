@@ -3,7 +3,7 @@
 # handlers file for pam_hardening
 - name: Rebuild PAM configuration
   ansible.builtin.command:
-    cmd: pam-auth-update --force
+    cmd: pam-auth-update --enable kanidm --force
   environment:
     DEBIAN_FRONTEND: noninteractive
   listen: Rebuild PAM configuration
