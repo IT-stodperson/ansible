@@ -214,6 +214,7 @@ table inet filter {
 
                 # Per-host service rules (IPv4)
 {% include 'per_host/' + inventory_hostname + '_inbound_v4.j2' ignore missing %}
+
         }
 
         chain inbound_ipv6 {
@@ -231,6 +232,7 @@ table inet filter {
 
                 # Per-host service rules (IPv6)
 {% include 'per_host/' + inventory_hostname + '_inbound_v6.j2' ignore missing %}
+
         }
 
         # ====================================================================
