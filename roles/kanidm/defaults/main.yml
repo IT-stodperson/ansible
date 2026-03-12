@@ -43,6 +43,8 @@ kanidm_pam_allowed_login_groups:
 kanidm_group_mappings:
   - local: sudo
     with: teachers
+  - local: sudo
+    with: ansible
 
 # ---------------------------------------------------------------------------
 # Service account token (vault-encrypted)
