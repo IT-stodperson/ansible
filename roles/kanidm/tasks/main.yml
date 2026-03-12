@@ -27,6 +27,13 @@
     - kanidm
     - kanidm_nsswitch
 
+- name: Configure PAM for Kanidm
+  ansible.builtin.import_tasks:
+    file: pam.yml
+  tags:
+    - kanidm
+    - kanidm_pam
+
 - name: Enable and start Kanidm services
   ansible.builtin.import_tasks:
     file: services.yml

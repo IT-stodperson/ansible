@@ -1,0 +1,25 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Enable Kanidm PAM integration via pam-auth-update.
+#
+# kanidm-unixd ships a pam-auth-update profile at
+# /usr/share/pam-configs/kanidm. Enabling it adds pam_kanidm.so to
+# the common-auth, common-account, and common-session stacks, which
+# is required for:
+#   - authenticating kanidm users (sudo, login, etc.)
+#   - applying map_group rules so kanidm groups resolve to local groups
+#
+# Without this step the map_group → sudo chain has no effect because
+# sudo's PAM stack never reaches pam_kanidm.so.
+
+- name: Check if Kanidm PAM module is already active
+  ansible.builtin.command:
+    cmd: grep -q pam_kanidm /etc/pam.d/common-auth
+  register: _kanidm_pam_check
+  failed_when: false
+  changed_when: false
+
+- name: Enable Kanidm PAM profile via pam-auth-update
+  ansible.builtin.command:
+    cmd: pam-auth-update --enable kanidm --force
+  when: _kanidm_pam_check.rc != 0
