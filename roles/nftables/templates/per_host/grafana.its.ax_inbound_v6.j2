@@ -1,0 +1,3 @@
+
+                # Grafana HTTPS from teacher networks → guard chain
+                ip6 saddr @grafana_https_allowed_v6 tcp dport $GRAFANA_HTTPS_PORT tcp flags & (fin|syn|rst|ack) == syn ct state new jump grafana_https_guard_v6

@@ -1,0 +1,32 @@
+
+        # ====================================================================
+        # Grafana HTTPS Guard Chains
+        # ====================================================================
+
+        chain grafana_https_guard_v4 {
+                # Drop if >100 concurrent conns from same IPv4 source
+                ct state new add @grafana_https_connlimit_v4 { ip saddr ct count over 100 } \
+                        add @grafana_https_connlog_v4 { ip saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT GRAFANA-HTTPS connlimit v4] " drop
+
+                # Allow normal new-connection rate per source
+                ct state new add @grafana_https_synrate_v4 { ip saddr limit rate 30/second burst 60 packets } accept
+
+                # Over SYN rate: log (throttled) then drop
+                ct state new add @grafana_https_synlog_v4 { ip saddr limit rate 1/minute burst 1 packets } log prefix "[NFT GRAFANA-HTTPS synrate v4] "
+                ct state new drop
+        }
+
+        chain grafana_https_guard_v6 {
+                # Drop if >100 concurrent conns from same IPv6 source
+                ct state new add @grafana_https_connlimit_v6 { ip6 saddr ct count over 100 } \
+                        add @grafana_https_connlog_v6 { ip6 saddr limit rate 1/minute burst 1 packets } \
+                        log prefix "[NFT GRAFANA-HTTPS connlimit v6] " drop
+
+                # Allow normal new-connection rate per source
+                ct state new add @grafana_https_synrate_v6 { ip6 saddr limit rate 30/second burst 60 packets } accept
+
+                # Over SYN rate: log (throttled) then drop
+                ct state new add @grafana_https_synlog_v6 { ip6 saddr limit rate 1/minute burst 1 packets } log prefix "[NFT GRAFANA-HTTPS synrate v6] "
+                ct state new drop
+        }
