@@ -37,6 +37,11 @@
         name: kanidm
       tags: kanidm
 
+    - name: Deploy sudo hardening and service account sudoers
+      ansible.builtin.import_role:
+        name: sudo_hardening
+      tags: sudo
+
     - name: Harden SSH configuration
       ansible.builtin.import_role:
         name: ssh_hardening
