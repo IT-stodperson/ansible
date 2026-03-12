@@ -43,3 +43,27 @@
       tags: ntp
     - role: systemd_hardening
       tags: systemd
+
+  post_tasks:
+    # pam_hardening can rebuild the PAM stack and drop pam_kanidm.so if its
+    # handler fires.  Re-assert kanidm PAM here so the two playbooks never
+    # drift out of sync regardless of which one was run last.
+    - name: Check Kanidm PAM module is present in common-auth
+      ansible.builtin.command:
+        cmd: grep -q pam_kanidm /etc/pam.d/common-auth
+      register: _sec_kanidm_pam_check
+      failed_when: false
+      changed_when: false
+      tags:
+        - pam
+        - kanidm_pam
+
+    - name: Re-enable Kanidm PAM profile if missing
+      ansible.builtin.command:
+        cmd: pam-auth-update --enable kanidm --force
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      when: _sec_kanidm_pam_check.rc != 0
+      tags:
+        - pam
+        - kanidm_pam
