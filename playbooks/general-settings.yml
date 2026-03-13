@@ -1,8 +1,8 @@
 ---
 # General Settings Playbook — Debian
 #
-# Applies general configuration roles to Debian servers: authentication,
-# locale settings, and dynamic MOTD.
+# Applies general configuration roles to Debian servers: locale settings,
+# login banners and dynamic MOTD.
 #
 # Usage:
 #   Full run:
