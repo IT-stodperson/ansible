@@ -40,3 +40,34 @@ grafana_cloudflare_api_token: "{{ vault_cloudflare_dns_api_token }}"
 # Email address passed to certbot for Let's Encrypt account registration
 # and expiry notifications.
 grafana_certbot_email: "itstodperson@its.ax"
+
+# ============================================================================
+# Kanidm OAuth2 / OIDC
+# ============================================================================
+
+# Toggle the entire [auth.generic_oauth] block. Set to false to skip.
+grafana_oauth_enabled: true
+
+# OAuth2 client ID registered in Kanidm ("kanidm system oauth2 create grafana ...").
+grafana_oauth_client_id: "grafana"
+
+# Client secret returned by "kanidm system oauth2 show-basic-secret grafana".
+# Store the actual value in Ansible Vault as vault_grafana_oauth_client_secret.
+grafana_oauth_client_secret: "{{ vault_grafana_oauth_client_secret }}"
+
+# OIDC scopes to request. Must match the scope map configured in Kanidm.
+grafana_oauth_scopes: "openid email profile groups"
+
+# Kanidm endpoints.
+grafana_oauth_auth_url: "https://kanidm.its.ax/ui/oauth2"
+grafana_oauth_token_url: "https://kanidm.its.ax/oauth2/token"
+grafana_oauth_api_url: "https://kanidm.its.ax/oauth2/openid/grafana/userinfo"
+
+# Jinja2-style path expression used to extract the login name from the
+# userinfo response. "preferred_username" is the short (non-@domain) name
+# when "kanidm system oauth2 prefer-short-username grafana" has been run.
+grafana_oauth_login_attribute_path: "preferred_username"
+
+# Allow users authenticating via OAuth to be granted Grafana Admin if their
+# token carries the relevant role claim.
+grafana_oauth_allow_assign_grafana_admin: true

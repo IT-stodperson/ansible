@@ -43,7 +43,7 @@
       --non-interactive
       --agree-tos
       --email {{ grafana_certbot_email }}
-  when: not grafana_cert_stat.stat.exists
+  when: not (grafana_cert_stat.stat.exists | bool)
   changed_when: true
 
 # ---------------------------------------------------------------------------
@@ -70,6 +70,7 @@
     src: "{{ grafana_letsencrypt_live_dir }}/fullchain.pem"
     dest: "{{ grafana_cert_dir }}/grafana.crt"
     state: link
+    mode: '0777'
     force: true
 
 - name: Create symlink for Grafana TLS private key
@@ -77,6 +78,7 @@
     src: "{{ grafana_letsencrypt_live_dir }}/privkey.pem"
     dest: "{{ grafana_cert_dir }}/grafana.key"
     state: link
+    mode: '0777'
     force: true
 
 - name: Set grafana group ownership on certificate symlinks

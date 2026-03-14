@@ -23,3 +23,28 @@
     - { key: cert_file,       value: "{{ grafana_cert_dir }}/grafana.crt" }
     - { key: cert_key,        value: "{{ grafana_cert_dir }}/grafana.key" }
   notify: Restart grafana-server
+
+- name: Configure Grafana [auth.generic_oauth] section for Kanidm
+  community.general.ini_file:
+    path: "{{ grafana_config_file }}"
+    section: auth.generic_oauth
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    owner: root
+    group: grafana
+    mode: '0640'
+  loop:
+    - { key: name,                        value: "kanidm" }
+    - { key: enabled,                     value: "{{ grafana_oauth_enabled | lower }}" }
+    - { key: allow_sign_up,               value: "true" }
+    - { key: client_id,                   value: "{{ grafana_oauth_client_id }}" }
+    - { key: client_secret,               value: "{{ grafana_oauth_client_secret }}" }
+    - { key: scopes,                      value: "{{ grafana_oauth_scopes }}" }
+    - { key: login_attribute_path,        value: "{{ grafana_oauth_login_attribute_path }}" }
+    - { key: auth_url,                    value: "{{ grafana_oauth_auth_url }}" }
+    - { key: token_url,                   value: "{{ grafana_oauth_token_url }}" }
+    - { key: api_url,                     value: "{{ grafana_oauth_api_url }}" }
+    - { key: use_pkce,                    value: "true" }
+    - { key: allow_assign_grafana_admin,  value: "{{ grafana_oauth_allow_assign_grafana_admin | lower }}" }
+  when: grafana_oauth_enabled | bool
+  notify: Restart grafana-server
