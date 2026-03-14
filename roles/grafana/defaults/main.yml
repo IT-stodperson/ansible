@@ -75,7 +75,8 @@ grafana_oauth_allow_assign_grafana_admin: true
 # JMESPath expression evaluated against the token claims to determine the
 # Grafana role assigned to the authenticating user.
 #
-# Kanidm sends group names as SPNs in the groups claim (e.g. "teachers@its.ax").
+# Kanidm sends group names as short names (without @domain) in the groups
+# claim, e.g. "teachers" rather than "teachers@its.ax".
 # Run "kanidm system oauth2 update-scope-map grafana teachers openid email profile groups"
 # and the equivalent for students before this will work.
 #
@@ -83,8 +84,8 @@ grafana_oauth_allow_assign_grafana_admin: true
 # If the expression returns empty/null, role_attribute_strict controls whether
 # the user is denied (true) or falls back to the default Viewer role (false).
 grafana_oauth_role_attribute_path: >-
-  contains(groups[*], 'teachers@its.ax') && 'Admin' ||
-  contains(groups[*], 'students@its.ax') && 'Viewer'
+  contains(groups[*], 'teachers') && 'Admin' ||
+  contains(groups[*], 'students') && 'Viewer'
 
 # When true, users whose token does not match role_attribute_path are denied
 # login entirely. When false, they fall back to the Viewer role.
