@@ -91,3 +91,8 @@ grafana_oauth_role_attribute_path: >-
 # login entirely. When false, they fall back to the Viewer role.
 # The Kanidm scope maps are the primary access gate, so false is sufficient.
 grafana_oauth_role_attribute_strict: false
+
+# When true, Grafana will NOT update a user's organisation role on subsequent
+# logins — only the initial login sets the role. Setting this to false ensures
+# the role stays in sync with Kanidm group membership on every login.
+grafana_oauth_skip_org_role_sync: false
