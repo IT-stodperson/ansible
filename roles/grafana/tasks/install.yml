@@ -4,7 +4,7 @@
 
 - name: Install prerequisite packages
   ansible.builtin.apt:
-    name:
+    package:
       - apt-transport-https
       - wget
       - gnupg
@@ -35,5 +35,5 @@
 
 - name: Install Grafana
   ansible.builtin.apt:
-    name: grafana
+    package: grafana
     state: present

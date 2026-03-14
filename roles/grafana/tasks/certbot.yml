@@ -6,7 +6,7 @@
 
 - name: Install Certbot and Cloudflare DNS plugin
   ansible.builtin.apt:
-    name:
+    package:
       - certbot
       - python3-certbot-dns-cloudflare
     state: present
@@ -68,7 +68,7 @@
 - name: Create symlink for Grafana TLS certificate
   ansible.builtin.file:
     src: "{{ grafana_letsencrypt_live_dir }}/fullchain.pem"
-    dest: "{{ grafana_cert_dir }}/grafana.crt"
+    path: "{{ grafana_cert_dir }}/grafana.crt"
     state: link
     mode: '0777'
     force: true
@@ -76,7 +76,7 @@
 - name: Create symlink for Grafana TLS private key
   ansible.builtin.file:
     src: "{{ grafana_letsencrypt_live_dir }}/privkey.pem"
-    dest: "{{ grafana_cert_dir }}/grafana.key"
+    path: "{{ grafana_cert_dir }}/grafana.key"
     state: link
     mode: '0777'
     force: true
