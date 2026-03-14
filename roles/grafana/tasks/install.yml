@@ -4,7 +4,7 @@
 
 - name: Install prerequisite packages
   ansible.builtin.apt:
-    name:
+    package:
       - apt-transport-https
       - wget
       - gnupg
