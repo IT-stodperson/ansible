@@ -22,6 +22,7 @@
     - { key: domain,          value: "{{ grafana_domain }}" }
     - { key: cert_file,       value: "{{ grafana_cert_dir }}/grafana.crt" }
     - { key: cert_key,        value: "{{ grafana_cert_dir }}/grafana.key" }
+    - { key: enforce_domain,  value: "{{ grafana_server_enforce_domain | lower }}" }
   notify: Restart grafana-server
 
 - name: Configure Grafana [auth.generic_oauth] section for Kanidm
@@ -50,4 +51,49 @@
     - { key: role_attribute_strict,       value: "{{ grafana_oauth_role_attribute_strict | lower }}" }
     - { key: skip_org_role_sync,          value: "{{ grafana_oauth_skip_org_role_sync | lower }}" }
   when: grafana_oauth_enabled | bool
+  notify: Restart grafana-server
+
+- name: Configure Grafana [security] section
+  community.general.ini_file:
+    path: "{{ grafana_config_file }}"
+    section: security
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    owner: root
+    group: grafana
+    mode: '0640'
+  loop:
+    - { key: data_source_proxy_whitelist,          value: "{{ grafana_security_data_source_proxy_whitelist }}" }
+    - { key: cookie_secure,                        value: "{{ grafana_security_cookie_secure | lower }}" }
+    - { key: cookie_samesite,                      value: "{{ grafana_security_cookie_samesite }}" }
+    - { key: strict_transport_security,            value: "{{ grafana_security_strict_transport_security | lower }}" }
+    - { key: strict_transport_security_preload,    value: "{{ grafana_security_strict_transport_security_preload | lower }}" }
+    - { key: content_security_policy,              value: "{{ grafana_security_content_security_policy | lower }}" }
+    - { key: content_security_policy_template,     value: "{{ grafana_security_content_security_policy_template }}" }
+  notify: Restart grafana-server
+
+- name: Configure Grafana [auth] section
+  community.general.ini_file:
+    path: "{{ grafana_config_file }}"
+    section: auth
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    owner: root
+    group: grafana
+    mode: '0640'
+  loop:
+    - { key: login_cookie_name, value: "{{ grafana_auth_login_cookie_name }}" }
+  notify: Restart grafana-server
+
+- name: Configure Grafana [auth.anonymous] section
+  community.general.ini_file:
+    path: "{{ grafana_config_file }}"
+    section: auth.anonymous
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    owner: root
+    group: grafana
+    mode: '0640'
+  loop:
+    - { key: hide_version, value: "{{ grafana_auth_anonymous_hide_version | lower }}" }
   notify: Restart grafana-server
