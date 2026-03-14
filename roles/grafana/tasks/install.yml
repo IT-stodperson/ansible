@@ -35,5 +35,5 @@
 
 - name: Install Grafana
   ansible.builtin.apt:
-    name: grafana
+    package: grafana
     state: present
