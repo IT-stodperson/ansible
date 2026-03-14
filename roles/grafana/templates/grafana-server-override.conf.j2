@@ -1,0 +1,29 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Grant grafana-server the CAP_NET_BIND_SERVICE capability so it can
+#   bind directly to port {{ grafana_http_port }} without running as root.
+#   Required for any port below 1024.
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@its.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+[Service]
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+# A private user namespace cannot acquire host capabilities, so
+# CAP_NET_BIND_SERVICE would have no effect with PrivateUsers=true.
+PrivateUsers=false

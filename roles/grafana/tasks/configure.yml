@@ -1,0 +1,25 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Configure /etc/grafana/grafana.ini.
+#
+# Uses community.general.ini_file to set individual options within their
+# correct sections. Existing commented-out lines (prefixed with ';') are
+# left intact; active values are added or updated idempotently.
+
+- name: Configure Grafana [server] section
+  community.general.ini_file:
+    path: "{{ grafana_config_file }}"
+    section: server
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    owner: root
+    group: grafana
+    mode: '0640'
+  loop:
+    - { key: protocol,        value: "https" }
+    - { key: min_tls_version, value: '"TLS1.3"' }
+    - { key: http_port,       value: "{{ grafana_http_port }}" }
+    - { key: domain,          value: "{{ grafana_domain }}" }
+    - { key: cert_file,       value: "{{ grafana_cert_dir }}/grafana.crt" }
+    - { key: cert_key,        value: "{{ grafana_cert_dir }}/grafana.key" }
+  notify: Restart grafana-server

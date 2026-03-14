@@ -1,0 +1,42 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for grafana
+
+# ============================================================================
+# Domain & Network
+# ============================================================================
+
+# Fully qualified domain name for the Grafana instance.
+grafana_domain: "grafana.its.ax"
+
+# Port Grafana listens on. Values below 1024 require the systemd capability
+# override (deployed automatically by this role).
+grafana_http_port: 443
+
+# ============================================================================
+# TLS
+# ============================================================================
+
+# Minimum TLS version accepted by Grafana. TLS 1.3 is strongly recommended.
+grafana_tls_min_version: "TLS1.3"
+
+# Directory where certificate symlinks are placed for Grafana to read.
+grafana_cert_dir: /etc/grafana
+
+# Path to the Let's Encrypt live directory for this domain.
+grafana_letsencrypt_live_dir: "/etc/letsencrypt/live/{{ grafana_domain }}"
+
+# ============================================================================
+# Certbot / Cloudflare DNS
+# ============================================================================
+
+# Path to the Cloudflare credentials file used for the DNS-01 challenge.
+grafana_cloudflare_credentials_path: /root/.secrets/cloudflare.ini
+
+# Cloudflare API token with Zone:DNS:Edit permissions for the target domain.
+# Store the actual value in Ansible Vault as vault_cloudflare_dns_api_token.
+grafana_cloudflare_api_token: "{{ vault_cloudflare_dns_api_token }}"
+
+# Email address passed to certbot for Let's Encrypt account registration
+# and expiry notifications.
+grafana_certbot_email: "itstodperson@its.ax"

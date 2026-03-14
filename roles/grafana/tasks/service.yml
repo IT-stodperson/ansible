@@ -1,0 +1,29 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Deploy the systemd capability override that allows Grafana to bind to
+# port 443, then enable and start the service.
+
+- name: Ensure systemd override directory exists for grafana-server
+  ansible.builtin.file:
+    path: "{{ grafana_systemd_override_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy systemd capability override for low-port binding
+  ansible.builtin.template:
+    src: grafana-server-override.conf.j2
+    dest: "{{ grafana_systemd_override_dir }}/override.conf"
+    owner: root
+    group: root
+    mode: '0644'
+    trim_blocks: true
+  notify: Restart grafana-server
+
+- name: Enable and start grafana-server
+  ansible.builtin.systemd:
+    name: grafana-server
+    enabled: true
+    state: started
+    daemon_reload: true
