@@ -1,0 +1,35 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for grafana
+
+# =============================================================================
+# Grafana — Main task entry point
+# =============================================================================
+
+- name: Install Grafana from official APT repository
+  ansible.builtin.import_tasks:
+    file: install.yml
+  tags:
+    - grafana
+    - grafana_install
+
+- name: Obtain TLS certificate via Certbot
+  ansible.builtin.import_tasks:
+    file: certbot.yml
+  tags:
+    - grafana
+    - grafana_certbot
+
+- name: Configure Grafana
+  ansible.builtin.import_tasks:
+    file: configure.yml
+  tags:
+    - grafana
+    - grafana_configure
+
+- name: Enable and start Grafana service
+  ansible.builtin.import_tasks:
+    file: service.yml
+  tags:
+    - grafana
+    - grafana_service

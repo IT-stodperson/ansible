@@ -1,0 +1,33 @@
+---
+# Grafana Playbook
+#
+# Installs and configures Grafana on grafana.its.ax:
+#   - Adds the Grafana Labs APT repository and installs the grafana package
+#   - Issues a TLS certificate via Certbot with Cloudflare DNS-01 validation
+#   - Configures HTTPS on port 443 with TLS 1.3
+#   - Deploys a systemd capability override for low-port binding
+#   - Enables and starts the grafana-server service
+#
+# Prerequisites:
+#   Add vault_cloudflare_dns_api_token to inventory/group_vars/all/vault.yml
+#   (Cloudflare API token with Zone:DNS:Edit permissions for its.ax)
+#
+# Usage:
+#   Full run:
+#     ansible-playbook playbooks/grafana.yml
+#
+#   Run specific stages via tags:
+#     ansible-playbook playbooks/grafana.yml --tags grafana_install
+#     ansible-playbook playbooks/grafana.yml --tags grafana_certbot
+#     ansible-playbook playbooks/grafana.yml --tags grafana_configure
+#     ansible-playbook playbooks/grafana.yml --tags grafana_service
+#
+#   Dry run:
+#     ansible-playbook playbooks/grafana.yml --check --diff
+
+- name: Grafana Playbook
+  hosts: grafana.its.ax
+  become: true
+  roles:
+    - role: grafana
+      tags: grafana

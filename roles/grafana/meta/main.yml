@@ -1,0 +1,24 @@
+#SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  author: Tobias Svenblad
+  description: >-
+    Deploy and configure Grafana on Debian servers — installs from the
+    official Grafana Labs APT repository, provisions a TLS certificate via
+    Certbot with Cloudflare DNS validation, configures HTTPS on port 443,
+    and manages the systemd service.
+  company: IT-stödperson
+  issue_tracker_url: https://github.com/IT-stodperson/ansible/issues
+  license: MIT
+  min_ansible_version: 2.20
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+  galaxy_tags:
+    - monitoring
+    - grafana
+    - tls
+    - debian
+dependencies: []
