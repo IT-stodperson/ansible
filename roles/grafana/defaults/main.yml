@@ -39,4 +39,4 @@ grafana_cloudflare_api_token: "{{ vault_cloudflare_dns_api_token }}"
 
 # Email address passed to certbot for Let's Encrypt account registration
 # and expiry notifications.
-grafana_certbot_email: "itstodperson@its.ax"
+grafana_certbot_email: "itstodperson@gymnasium.ax"
