@@ -68,14 +68,14 @@
 - name: Create symlink for Grafana TLS certificate
   ansible.builtin.file:
     src: "{{ grafana_letsencrypt_live_dir }}/fullchain.pem"
-    dest: "{{ grafana_cert_dir }}/grafana.crt"
+    path: "{{ grafana_cert_dir }}/grafana.crt"
     state: link
     force: true
 
 - name: Create symlink for Grafana TLS private key
   ansible.builtin.file:
     src: "{{ grafana_letsencrypt_live_dir }}/privkey.pem"
-    dest: "{{ grafana_cert_dir }}/grafana.key"
+    path: "{{ grafana_cert_dir }}/grafana.key"
     state: link
     force: true
 
