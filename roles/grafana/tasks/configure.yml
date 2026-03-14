@@ -48,5 +48,6 @@
     - { key: allow_assign_grafana_admin,  value: "{{ grafana_oauth_allow_assign_grafana_admin | lower }}" }
     - { key: role_attribute_path,         value: "{{ grafana_oauth_role_attribute_path }}" }
     - { key: role_attribute_strict,       value: "{{ grafana_oauth_role_attribute_strict | lower }}" }
+    - { key: skip_org_role_sync,          value: "{{ grafana_oauth_skip_org_role_sync | lower }}" }
   when: grafana_oauth_enabled | bool
   notify: Restart grafana-server
