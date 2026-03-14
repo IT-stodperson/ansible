@@ -2,12 +2,21 @@
 ---
 # grub_hardening — unrestricted boot and kernel boot parameters
 
-- name: Ensure --unrestricted is set in 10_linux CLASS variable
+- name: Remove --unrestricted from 10_linux CLASS variable (migrating to 09_unrestricted)
   ansible.builtin.lineinfile:
     path: /etc/grub.d/10_linux
-    regexp: '^CLASS="--class gnu-linux --class gnu --class os'
-    line: 'CLASS="--class gnu-linux --class gnu --class os --unrestricted"'
-    backrefs: false
+    regexp: '^(CLASS="--class gnu-linux --class gnu --class os) --unrestricted(")'
+    line: '\1\2'
+    backrefs: true
+    mode: '0755'
+  notify: Update GRUB
+
+- name: Deploy GRUB unrestricted boot script
+  ansible.builtin.template:
+    src: 09_unrestricted.j2
+    dest: /etc/grub.d/09_unrestricted
+    owner: root
+    group: root
     mode: '0755'
   notify: Update GRUB
 

@@ -16,12 +16,21 @@
   changed_when: false
   failed_when: false
 
+- name: Check GRUB unrestricted menuentry_id_option
+  ansible.builtin.command:
+    cmd: grep -qE '^set menuentry_id_option="--unrestricted' /boot/grub/grub.cfg
+  register: _grub_unrestricted
+  changed_when: false
+  failed_when: false
+
 - name: Assert GRUB password protection is properly configured
   ansible.builtin.assert:
     that:
       - _grub_superusers.rc == 0
       - _grub_password.rc == 0
+      - _grub_unrestricted.rc == 0
     fail_msg: >-
       GRUB password protection is not fully configured in /boot/grub/grub.cfg.
-      Expected both a 'set superusers' line and a 'password_pbkdf2' line.
+      Expected a 'set superusers' line, a 'password_pbkdf2' line, and
+      'set menuentry_id_option="--unrestricted ...' before menu entries.
     success_msg: GRUB password protection is properly configured.
