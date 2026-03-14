@@ -22,7 +22,7 @@
 - name: Deploy Cloudflare API credentials
   ansible.builtin.template:
     src: cloudflare.ini.j2
-    path: "{{ grafana_cloudflare_credentials_path }}"
+    dest: "{{ grafana_cloudflare_credentials_path }}"
     owner: root
     group: root
     mode: '0600'
