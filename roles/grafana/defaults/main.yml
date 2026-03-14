@@ -96,3 +96,46 @@ grafana_oauth_role_attribute_strict: false
 # logins — only the initial login sets the role. Setting this to false ensures
 # the role stays in sync with Kanidm group membership on every login.
 grafana_oauth_skip_org_role_sync: false
+
+# ============================================================================
+# Security
+# ============================================================================
+
+# Redirect to the configured domain if the Host header does not match.
+# Mitigates DNS rebinding attacks.
+grafana_server_enforce_domain: true
+
+# Space-separated list of IP addresses allowed as data source proxy targets.
+# Restricts which backends Grafana will proxy datasource requests to.
+grafana_security_data_source_proxy_whitelist: "10.0.99.25"
+
+# Mark the session cookie as Secure (sent over HTTPS only).
+grafana_security_cookie_secure: true
+
+# SameSite attribute for the session cookie.
+grafana_security_cookie_samesite: "strict"
+
+# Add a Strict-Transport-Security header to all responses.
+grafana_security_strict_transport_security: true
+
+# Include the preload directive in the HSTS header.
+grafana_security_strict_transport_security_preload: true
+
+# Emit a Content-Security-Policy header.
+grafana_security_content_security_policy: true
+
+# CSP template. $NONCE and $ROOT_PATH are substituted by Grafana at runtime.
+# Triple-quotes are part of the grafana.ini syntax for multi-token values.
+grafana_security_content_security_policy_template: >-
+  """script-src 'self' 'unsafe-eval' 'unsafe-inline' 'strict-dynamic' $NONCE;object-src 'none';font-src 'self';style-src 'self' 'unsafe-inline' blob:;img-src * data:;base-uri 'self';connect-src 'self' grafana.com ws://$ROOT_PATH wss://$ROOT_PATH;manifest-src 'self';media-src 'none';form-action 'self';"""
+
+# ============================================================================
+# Authentication
+# ============================================================================
+
+# Name of the session cookie. The __Host- prefix enforces Secure, Path=/,
+# and no Domain attribute, strengthening cookie security.
+grafana_auth_login_cookie_name: "__Host-grafana_session"
+
+# Hide the Grafana version number from unauthenticated users.
+grafana_auth_anonymous_hide_version: true
