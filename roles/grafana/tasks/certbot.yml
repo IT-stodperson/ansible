@@ -70,7 +70,7 @@
     src: "{{ grafana_letsencrypt_live_dir }}/fullchain.pem"
     path: "{{ grafana_cert_dir }}/grafana.crt"
     state: link
-    mode: '0777'
+    mode: '0450'
     force: true
 
 - name: Create symlink for Grafana TLS private key
@@ -78,7 +78,7 @@
     src: "{{ grafana_letsencrypt_live_dir }}/privkey.pem"
     path: "{{ grafana_cert_dir }}/grafana.key"
     state: link
-    mode: '0777'
+    mode: '0450'
     force: true
 
 - name: Set grafana group ownership on certificate symlinks
