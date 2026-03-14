@@ -46,5 +46,7 @@
     - { key: api_url,                     value: "{{ grafana_oauth_api_url }}" }
     - { key: use_pkce,                    value: "true" }
     - { key: allow_assign_grafana_admin,  value: "{{ grafana_oauth_allow_assign_grafana_admin | lower }}" }
+    - { key: role_attribute_path,         value: "{{ grafana_oauth_role_attribute_path }}" }
+    - { key: role_attribute_strict,       value: "{{ grafana_oauth_role_attribute_strict | lower }}" }
   when: grafana_oauth_enabled | bool
   notify: Restart grafana-server
