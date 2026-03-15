@@ -1,0 +1,86 @@
+# -----------------------------------------------------------------------------
+# THIS FILE IS MANAGED BY ANSIBLE — DO NOT EDIT MANUALLY
+#
+# Purpose:
+#   Security hardening baseline for MariaDB Server
+#
+# Source:
+#   Template: {{ template_path }}
+#   Control:  {{ template_host }} ({{ template_host }}.its.ax)
+#
+# Changes:
+#   Edit the template and re-run Ansible.
+#   Manual changes will be overwritten on the next playbook run.
+#
+# Contact:
+#   IT-stödperson <itstodperson@gymnasium.ax>
+#
+# Deployed to: {{ inventory_hostname }}
+# Generated:   {{ template_run_date }}
+# -----------------------------------------------------------------------------
+
+[mariadb]
+#
+# Security hardening baseline for MariaDB Server
+#
+# -- Network ----------------------------------------------
+# Listen on all interfaces
+bind-address = {{ mariadb_bind_address }}
+# Skip reverse DNS lookups (faster, avoids DNS-based surprises).
+# NOTE: With this enabled, GRANT host parts must be IPs/CIDRs/wildcards, not DNS names.
+skip-name-resolve
+# Require TLS for all client connections.
+#require_secure_transport = ON
+tls_version = TLSv1.3
+# TLS certificate and key (issued by Let's Encrypt via Certbot)
+ssl_cert = {{ mariadb_cert_dir }}/mariadb.crt
+ssl_key  = {{ mariadb_cert_dir }}/mariadb.key
+# -- File system ------------------------------------------
+# Restrict SELECT INTO OUTFILE / LOAD DATA INFILE to a single directory.
+# MariaDB's default is unrestricted, so this is an active hardening step.
+secure-file-priv        = /var/lib/mysql-files
+# Disable LOAD DATA LOCAL INFILE — common attack vector
+local-infile = 0
+# -- Connection limits ------------------------------------
+# Block a host after N consecutive authentication failures.
+# {{ mariadb_max_connect_errors }} is strict enough for brute-force protection without
+# locking out a misconfigured application immediately.
+max-connect-errors      = {{ mariadb_max_connect_errors }}
+# -- Logging ----------------------------------------------
+general-log           = 1
+general-log-file      = {{ mariadb_log_dir }}/general.log
+log_error = {{ mariadb_log_dir }}/error.log
+# Slow-query log (default OFF — we enable it explicitly)
+slow-query-log          = 1
+slow-query-log-file     = {{ mariadb_log_dir }}/slow.log
+long-query-time         = {{ mariadb_long_query_time }}
+# -- Password Policies -------------------------------------
+plugin_load_add = auth_ed25519
+# Password length + character class requirements.
+plugin_load_add = simple_password_check
+simple_password_check = FORCE_PLUS_PERMANENT
+simple_password_check_digits = 1
+simple_password_check_letters_same_case = 1
+simple_password_check_minimal_length = {{ mariadb_password_min_length }}
+simple_password_check_other_characters = 1
+# Dictionary-based policy (CrackLib).
+plugin_load_add = cracklib_password_check
+cracklib_password_check = FORCE_PLUS_PERMANENT
+# Password reuse prevention.
+plugin_load_add = password_reuse_check
+password_reuse_check_interval = {{ mariadb_password_reuse_interval }}
+# -- Auditing ---------------------------------------------
+# Logging *every* query can leak sensitive application data into logs.
+plugin_load_add = server_audit
+server_audit = FORCE_PLUS_PERMANENT
+server_audit_logging = ON
+server_audit_events = CONNECT,QUERY,TABLE,QUERY_DDL,QUERY_DML,QUERY_DCL,QUERY_DML_NO_SELECT
+server_audit_excl_users = mysql
+server_audit_file_path = {{ mariadb_log_dir }}/server_audit.log
+# -- Binary-Log Encryption --------------------------------
+plugin_load_add = file_key_management
+file_key_management = FORCE_PLUS_PERMANENT
+file_key_management_encryption_algorithm = AES_CTR
+file_key_management_filekey = FILE:{{ mariadb_encryption_dir }}/keyfile.key
+file_key_management_filename = {{ mariadb_encryption_dir }}/keyfile.enc
+encrypt_binlog = ON

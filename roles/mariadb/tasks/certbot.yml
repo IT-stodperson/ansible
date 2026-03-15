@@ -1,0 +1,98 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Obtain a TLS certificate for MariaDB using Certbot with Cloudflare DNS
+# validation. Certificate issuance is skipped if a valid cert already exists;
+# renewals are handled automatically by Certbot's own systemd timer.
+
+- name: Install Certbot and Cloudflare DNS plugin
+  ansible.builtin.apt:
+    package:
+      - certbot
+      - python3-certbot-dns-cloudflare
+    state: present
+
+- name: Ensure /root/.secrets directory exists
+  ansible.builtin.file:
+    path: /root/.secrets
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Deploy Cloudflare API credentials
+  ansible.builtin.template:
+    src: cloudflare.ini.j2
+    dest: "{{ mariadb_cloudflare_credentials_path }}"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Check if certificate already exists
+  ansible.builtin.stat:
+    path: "{{ mariadb_letsencrypt_live_dir }}/fullchain.pem"
+  register: mariadb_cert_stat
+
+- name: Obtain TLS certificate via Certbot DNS-01 challenge
+  ansible.builtin.command:
+    cmd: >
+      certbot certonly
+      --dns-cloudflare
+      --dns-cloudflare-credentials {{ mariadb_cloudflare_credentials_path }}
+      -d {{ mariadb_domain }}
+      --preferred-challenges dns-01
+      --non-interactive
+      --agree-tos
+      --email {{ mariadb_certbot_email }}
+  when: not (mariadb_cert_stat.stat.exists | bool)
+  changed_when: true
+
+# ---------------------------------------------------------------------------
+# Grant the mysql process group read access to the certificate files.
+# Certbot defaults to root-only permissions; MariaDB runs as the mysql user.
+# ---------------------------------------------------------------------------
+
+- name: Grant mysql group read/traversal access on Let's Encrypt tree
+  ansible.builtin.file:
+    path: /etc/letsencrypt
+    group: mysql
+    mode: 'g+rx'
+    state: directory
+    recurse: true
+
+# ---------------------------------------------------------------------------
+# Place symlinks inside mariadb_cert_dir so the MariaDB config can reference
+# stable paths regardless of Let's Encrypt's versioned archive names.
+# ---------------------------------------------------------------------------
+
+- name: Ensure MariaDB SSL directory exists
+  ansible.builtin.file:
+    path: "{{ mariadb_cert_dir }}"
+    state: directory
+    owner: root
+    group: mysql
+    mode: '0750'
+
+- name: Create symlink for MariaDB TLS certificate
+  ansible.builtin.file:
+    src: "{{ mariadb_letsencrypt_live_dir }}/fullchain.pem"
+    path: "{{ mariadb_cert_dir }}/mariadb.crt"
+    state: link
+    force: true
+
+- name: Create symlink for MariaDB TLS private key
+  ansible.builtin.file:
+    src: "{{ mariadb_letsencrypt_live_dir }}/privkey.pem"
+    path: "{{ mariadb_cert_dir }}/mariadb.key"
+    state: link
+    force: true
+
+- name: Set mysql group ownership and permissions on certificate symlinks
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: root
+    group: mysql
+    mode: '0440'
+    follow: true
+  loop:
+    - "{{ mariadb_cert_dir }}/mariadb.crt"
+    - "{{ mariadb_cert_dir }}/mariadb.key"

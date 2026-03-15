@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for mariadb
+
+# Directory containing MariaDB configuration snippets.
+mariadb_config_dir: /etc/mysql/mariadb.conf.d
+
+# Hardening configuration file path.
+mariadb_hardening_config: /etc/mysql/mariadb.conf.d/99-hardening.cnf
+
+# Log directory used by all MariaDB log files.
+mariadb_log_dir: /var/log/mariadb

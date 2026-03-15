@@ -1,0 +1,71 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for mariadb
+
+# ============================================================================
+# Domain & Network
+# ============================================================================
+
+# Fully qualified domain name for this MariaDB instance.
+mariadb_domain: "mariadb.its.ax"
+
+# Address MariaDB listens on. 0.0.0.0 = all interfaces.
+mariadb_bind_address: "0.0.0.0"
+
+# ============================================================================
+# TLS — Let's Encrypt via Certbot
+# ============================================================================
+
+# Directory where certificate symlinks are placed for MariaDB to read.
+mariadb_cert_dir: /etc/mysql/ssl
+
+# Path to the Let's Encrypt live directory for this domain.
+mariadb_letsencrypt_live_dir: "/etc/letsencrypt/live/{{ mariadb_domain }}"
+
+# ============================================================================
+# Certbot / Cloudflare DNS
+# ============================================================================
+
+# Path to the Cloudflare credentials file used for the DNS-01 challenge.
+mariadb_cloudflare_credentials_path: /root/.secrets/cloudflare.ini
+
+# Cloudflare API token with Zone:DNS:Edit permissions for the target domain.
+# Store the actual value in Ansible Vault as vault_cloudflare_dns_api_token.
+mariadb_cloudflare_api_token: "{{ vault_cloudflare_dns_api_token }}"
+
+# Email address passed to certbot for Let's Encrypt account registration.
+mariadb_certbot_email: "itstodperson@gymnasium.ax"
+
+# ============================================================================
+# At-Rest Encryption (file_key_management plugin)
+# ============================================================================
+
+# Directory that holds the encryption key material.
+mariadb_encryption_dir: /etc/mysql/encryption
+
+# Contents of keyfile.txt — the plaintext key file in MariaDB key format:
+#   1;<hex-encoded-256-bit-key>
+# Store the actual value in Ansible Vault as vault_mariadb_keyfile_content.
+mariadb_keyfile_content: "{{ vault_mariadb_keyfile_content }}"
+
+# Contents of keyfile.key — the passphrase used to encrypt keyfile.txt into
+# keyfile.enc via openssl enc.  MariaDB reads this at startup to decrypt
+# keyfile.enc.  Store the actual value in Ansible Vault as
+# vault_mariadb_keyfile_key.
+mariadb_keyfile_key: "{{ vault_mariadb_keyfile_key }}"
+
+# ============================================================================
+# Hardening tunables
+# ============================================================================
+
+# Block a host after N consecutive authentication failures.
+mariadb_max_connect_errors: 100
+
+# Slow-query threshold in seconds.
+mariadb_long_query_time: 2
+
+# Minimum password length enforced by simple_password_check.
+mariadb_password_min_length: 12
+
+# Days after which a password may not be reused.
+mariadb_password_reuse_interval: 24

@@ -1,0 +1,60 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Deploy the file_key_management encryption key material to the server.
+#
+# Files deployed:
+#   keyfile.key  — passphrase used by openssl to produce keyfile.enc
+#   keyfile.enc  — AES-256-CBC encrypted copy of keyfile.txt (generated here)
+#
+# The plaintext keyfile.txt is written to a temporary path, used to generate
+# keyfile.enc, and then removed so it never persists on disk at rest.
+#
+# Both vault_mariadb_keyfile_content and vault_mariadb_keyfile_key must be
+# present in inventory/group_vars/all/vault.yml.
+
+- name: Ensure encryption directory exists
+  ansible.builtin.file:
+    path: "{{ mariadb_encryption_dir }}"
+    state: directory
+    owner: root
+    group: mysql
+    mode: '0750'
+
+- name: Deploy keyfile.key (encryption passphrase)
+  ansible.builtin.copy:
+    content: "{{ mariadb_keyfile_key }}"
+    dest: "{{ mariadb_encryption_dir }}/keyfile.key"
+    owner: root
+    group: mysql
+    mode: '0640'
+
+# Write keyfile.txt to a root-only temp path, generate keyfile.enc, then
+# remove the plaintext file so it does not linger on disk.
+- name: Write plaintext keyfile.txt to a temporary location
+  ansible.builtin.copy:
+    content: "{{ mariadb_keyfile_content }}"
+    dest: /root/.mariadb_keyfile_tmp.txt
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Generate encrypted keyfile.enc from keyfile.txt
+  ansible.builtin.command:
+    cmd: >
+      openssl enc -aes-256-cbc -md sha1
+      -pass file:{{ mariadb_encryption_dir }}/keyfile.key
+      -in /root/.mariadb_keyfile_tmp.txt
+      -out {{ mariadb_encryption_dir }}/keyfile.enc
+  changed_when: true
+
+- name: Remove temporary plaintext keyfile
+  ansible.builtin.file:
+    path: /root/.mariadb_keyfile_tmp.txt
+    state: absent
+
+- name: Set ownership and permissions on keyfile.enc
+  ansible.builtin.file:
+    path: "{{ mariadb_encryption_dir }}/keyfile.enc"
+    owner: root
+    group: mysql
+    mode: '0640'

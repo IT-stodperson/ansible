@@ -1,0 +1,42 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for mariadb
+
+# =============================================================================
+# MariaDB — Main task entry point
+# =============================================================================
+
+- name: Install MariaDB packages
+  ansible.builtin.import_tasks:
+    file: install.yml
+  tags:
+    - mariadb
+    - mariadb_install
+
+- name: Obtain TLS certificate via Certbot
+  ansible.builtin.import_tasks:
+    file: certbot.yml
+  tags:
+    - mariadb
+    - mariadb_certbot
+
+- name: Deploy encryption key material
+  ansible.builtin.import_tasks:
+    file: encryption.yml
+  tags:
+    - mariadb
+    - mariadb_encryption
+
+- name: Configure MariaDB
+  ansible.builtin.import_tasks:
+    file: configure.yml
+  tags:
+    - mariadb
+    - mariadb_configure
+
+- name: Enable and start MariaDB service
+  ansible.builtin.import_tasks:
+    file: service.yml
+  tags:
+    - mariadb
+    - mariadb_service

@@ -1,0 +1,36 @@
+---
+# MariaDB Playbook
+#
+# Installs and configures MariaDB on mariadb.its.ax:
+#   - Installs mariadb-server, mariadb-client, and galera-4
+#   - Issues a TLS certificate via Certbot with Cloudflare DNS-01 validation
+#   - Deploys encryption key material for file_key_management (binlog encryption)
+#   - Deploys the 99-hardening.cnf security baseline
+#   - Enables and starts the mariadb service
+#
+# Prerequisites:
+#   The following secrets must be present in inventory/group_vars/all/vault.yml:
+#     vault_cloudflare_dns_api_token  — Cloudflare API token (Zone:DNS:Edit)
+#     vault_mariadb_keyfile_content   — Plaintext MariaDB key file (keyfile.txt)
+#     vault_mariadb_keyfile_key       — Passphrase for encrypting the key file
+#
+# Usage:
+#   Full run:
+#     ansible-playbook playbooks/mariadb.yml
+#
+#   Run specific stages via tags:
+#     ansible-playbook playbooks/mariadb.yml --tags mariadb_install
+#     ansible-playbook playbooks/mariadb.yml --tags mariadb_certbot
+#     ansible-playbook playbooks/mariadb.yml --tags mariadb_encryption
+#     ansible-playbook playbooks/mariadb.yml --tags mariadb_configure
+#     ansible-playbook playbooks/mariadb.yml --tags mariadb_service
+#
+#   Dry run:
+#     ansible-playbook playbooks/mariadb.yml --check --diff
+
+- name: MariaDB Playbook
+  hosts: mariadb.its.ax
+  become: true
+  roles:
+    - role: mariadb
+      tags: mariadb

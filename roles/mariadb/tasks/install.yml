@@ -1,0 +1,16 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Install MariaDB Server, Client, and the Galera 4 WSREP provider.
+
+- name: Update APT cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install MariaDB packages
+  ansible.builtin.apt:
+    package:
+      - mariadb-server
+      - mariadb-client
+      - galera-4
+    state: present

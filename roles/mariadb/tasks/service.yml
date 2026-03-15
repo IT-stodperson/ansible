@@ -1,0 +1,10 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Ensure the MariaDB service is enabled and running.
+
+- name: Enable and start MariaDB
+  ansible.builtin.systemd:
+    name: mariadb
+    enabled: true
+    state: started
+    daemon_reload: true
